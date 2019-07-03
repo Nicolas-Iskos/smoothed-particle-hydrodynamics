@@ -1,9 +1,6 @@
+#include "simulation-parameters.h"
 #include "smoothing-kernels.h"
-
 #include <math.h>
-
-#define H               1
-#define INV_PI_HPow3    0.3183
 
 __device__ float cubic_spline_kernel(float r) {
     float x = r / H;

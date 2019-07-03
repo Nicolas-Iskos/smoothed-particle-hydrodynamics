@@ -1,6 +1,6 @@
-#include <stdint.h>
-
 #include "particle-data-structures.h"
+
+#include <stdint.h>
 
 /*
  * returns a linked list of the grid occupants that are neighbors to
