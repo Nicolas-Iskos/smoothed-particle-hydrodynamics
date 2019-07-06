@@ -3,7 +3,6 @@
 
 #include <stdint.h>
 
-
 /*
  * classe used to allow new operator
  * to allocate space in unified memory
