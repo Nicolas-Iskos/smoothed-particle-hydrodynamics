@@ -1,26 +1,34 @@
-CC=nvcc
-CXXFLAGS+=-std c++11
+CC = nvcc
 
-SPH: run-SPH.o particle-data-structures.o integrate.o calculate-field.o smoothing-kernels.o test-kernels.o
-	$(CC) $(CXXFLAGS) integrate.o particle-data-structures.o calculate-field.o smoothing-kernels.o run-SPH.o test-kernels.o -o SPH
+CFLAGS+=-std c++11
 
-run-SPH.o: run-SPH.cu particle-data-structures.h simulation-parameters.h
-	$(CC) $(CXXFLAGS) -c run-SPH.cu
+OBJECTS = run-SPH.o particle-data-structures.o integrate.o calculate-field.o \
+		  smoothing-kernels.o test-kernels.o
 
-particle-data-structures.o: particle-data-structures.cu initialize.h particle-data-structures.h simulation-parameters.h
-	$(CC) $(CXXFLAGS) -c particle-data-structures.cu
+COM-DEPS = particle-data-structures.cu particle-data-structures.h \
+		   simulation-parameters.h
 
-integrate.o: integrate.cu integrate.h particle-data-structures.h simulation-parameters.h
-	$(CC) $(CXXFLAGS) -c integrate.cu
 
-calculate-field.o: calculate-field.cu calculate-field.h particle-data-structures.h simulation-parameters.h
-	$(CC) $(CXXFLAGS) -c calculate-field.cu
 
-smoothing-kernels.o: smoothing-kernels.cu smoothing-kernels.h particle-data-structures.h simulation-parameters.h
-	$(CC) $(CXXFLAGS) -c smoothing-kernels.cu
+SPH: $(OBJECTS)
+	$(CC) $(OBJECTS) -o SPH
 
-test-kernels.o: test-kernels.h test-kernels.cu particle-data-structures.h simulation-parameters.h
-	$(CC) $(CXXFLAGS) -c test-kernels.cu
+%.o: %.cu
+	$(CC) $(CFLAGS) -c $<
+
+
+
+run-SPH.o: run-SPH.cu $(COM-DEPS)
+
+particle-data-structures.o: $(COM-DEPS)
+
+integrate.o: integrate.cu integrate.h $(COM-DEPS)
+
+calculate-field.o: calculate-field.cu calculate-field.h $(COM-DEPS)
+
+smoothing-kernels.o: smoothing-kernels.cu smoothing-kernels.h $(COM-DEPS)
+
+test-kernels.o: test-kernels.cu test-kernels.h $(COM-DEPS)
 
 clean:
 	rm *.o SPH
