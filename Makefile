@@ -1,6 +1,6 @@
 CC = nvcc
 
-CFLAGS+=-std c++11
+CFLAGS+=-std c++14
 
 OBJECTS = run-SPH.o particle-data-structures.o integrate.o calculate-field.o \
 		  smoothing-kernels.o test-kernels.o

@@ -26,8 +26,6 @@ class Managed {
  * */
 class Particle : public Managed {
     public:
-        uint32_t particle_index;
-
         float pos_x;
         float pos_y;
         float pos_z;
@@ -44,6 +42,7 @@ class Particle : public Managed {
         float pressure;
         float internal_energy;
 
+        Particle *prev_particle;
         Particle *next_particle;
 };
 
@@ -60,17 +59,22 @@ class Particle : public Managed {
  * experiment space - an element of the array at index i is a linked list
  * of particles that exist within grid space i.
  * */
-typedef Particle** gr_to_p_map_t;
+typedef Particle **gri_to_pl_map_t;
 
 /*
  * array whose indices correspond to each particle - an element
  * of the array corresponds to the grid space in which that
  * particle exists
  * */
-typedef uint32_t* p_to_gr_map_t;
+typedef uint32_t *pi_to_gri_map_t;
 
 
 
+typedef Particle **pi_to_pa_map_t;
+
+
+
+typedef int *grid_mutex_set_t;
 
 
 /*****************************************************************************/
@@ -83,20 +87,44 @@ typedef uint32_t* p_to_gr_map_t;
  * be run on the host.
  * */
 
-p_to_gr_map_t gen_particle_to_grid_map();
 
-gr_to_p_map_t gen_grid_to_particles_map();
+gri_to_pl_map_t gen_grid_to_particle_list_map();
 
-void initialize_dam_break(p_to_gr_map_t particle_to_grid_map,
-                          gr_to_p_map_t grid_to_particles_map);
+pi_to_gri_map_t gen_particle_idx_to_grid_idx_map();
+
+pi_to_pa_map_t gen_particle_idx_to_addr_map();
+
+
+void initialize_dam_break(gri_to_pl_map_t grid_to_particle_list_map,
+                          pi_to_gri_map_t particle_idx_to_grid_idx_map,
+                          pi_to_pa_map_t particle_idx_to_addr_map);
 
 /*
  * included below is a set of general purpose data structure manipulation
  * functions with versions for both the host and device
  * */
 
-void host_insert_into_grid(gr_to_p_map_t grid_to_particles_map, uint32_t grid_index,
-                      Particle *new_particle);
+void host_insert_into_grid(gri_to_pl_map_t grid_to_particle_list_map,
+                           uint32_t grid_idx,
+                           pi_to_gri_map_t particle_idx_to_grid_idx_map,
+                           uint32_t particle_idx,
+                           Particle *new_particle);
+
+__device__ void device_insert_into_grid(gri_to_pl_map_t grid_to_particle_list_map,
+                                        uint32_t grid_idx,
+                                        pi_to_gri_map_t particle_idx_to_grid_idx_map,
+                                        uint32_t particle_idx,
+                                        Particle *new_particle,
+                                        grid_mutex_set_t mutex_set);
+
+__device__ void device_remove_from_grid(gri_to_pl_map_t grid_to_particle_list_map,
+                                        uint32_t grid_idx,
+                                        Particle *del_particle,
+                                        grid_mutex_set_t mutext_set);
+
+__device__ void unlock_grid_mutex(grid_mutex_set_t mutex_set, uint32_t mutex_idx);
+
+__device__ void lock_grid_mutex(grid_mutex_set_t mutex_set, uint32_t mutex_idx);
 
 
 
