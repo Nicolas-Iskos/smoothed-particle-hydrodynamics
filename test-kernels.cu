@@ -1,6 +1,8 @@
 #include "particle-data-structures.h"
 #include "simulation-parameters.h"
 
+#include "test-kernels.h"
+
 #include <stdint.h>
 #include <stdio.h>
 
@@ -62,6 +64,11 @@ bool host_grid_consistency_check(gri_to_pl_map_t grid_to_particle_list_map) {
             printf("Malformed dll at index %zu\n", i);
             return false;
         }
+
+        if(particles_per_grid_slot_forward[i] != 0) {
+            printf("Non-empty cow with %d particles\n",
+                    particles_per_grid_slot_forward[i]);
+        }
     }
 
     return true;
@@ -74,6 +81,40 @@ void output_particle_idx_to_grid_idx_map(pi_to_gri_map_t particle_idx_to_grid_id
     }
 }
 
+__global__ void insert_particle_test(gri_to_pl_map_t grid_to_particle_list_map,
+                                     pi_to_gri_map_t particle_idx_to_grid_idx_map,
+                                     pi_to_pa_map_t particle_idx_to_addr_map,
+                                     grid_mutex_set_t mutex_set) {
+
+    uint32_t particle_idx = blockIdx.x * blockDim.x + threadIdx.x;
+    uint32_t grid_idx = particle_idx % 8;
+
+    Particle *new_particle = particle_idx_to_addr_map[particle_idx];
+
+    device_insert_into_grid(grid_to_particle_list_map,
+                            grid_idx,
+                            particle_idx_to_grid_idx_map,
+                            particle_idx,
+                            new_particle,
+                            mutex_set);
+}
+
+
+__global__ void delete_particles_test(gri_to_pl_map_t grid_to_particle_list_map,
+                                      pi_to_gri_map_t particle_idx_to_grid_idx_map,
+                                      pi_to_pa_map_t particle_idx_to_addr_map,
+                                      grid_mutex_set_t mutex_set) {
+
+    uint32_t particle_idx = blockIdx.x * blockDim.x + threadIdx.x;
+    uint32_t grid_idx = particle_idx_to_grid_idx_map[particle_idx];
+
+    Particle *del_particle = particle_idx_to_addr_map[particle_idx];
+
+    device_remove_from_grid(grid_to_particle_list_map,
+                            grid_idx,
+                            del_particle,
+                            mutex_set);
+}
 
 
 

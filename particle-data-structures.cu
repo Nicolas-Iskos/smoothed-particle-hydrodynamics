@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 
+
 pi_to_gri_map_t gen_particle_idx_to_grid_idx_map() {
     pi_to_gri_map_t particle_idx_to_grid_idx_map;
 
@@ -12,20 +13,24 @@ pi_to_gri_map_t gen_particle_idx_to_grid_idx_map() {
     return particle_idx_to_grid_idx_map;
 }
 
+
 gri_to_pl_map_t gen_grid_to_particle_list_map() {
     gri_to_pl_map_t grid_to_particle_list_map;
+    uint32_t n_grid_spaces;
 
-    uint32_t n_grid_spaces = (uint32_t)pow(EXP_SPACE_DIM / H, 3);
+    n_grid_spaces = (uint32_t)pow(EXP_SPACE_DIM / H, 3);
 
     cudaMallocManaged(&grid_to_particle_list_map,
             n_grid_spaces * sizeof(Particle*));
 
+    /* ensure that each doubly linked list is NULL-terminated */
     for(size_t i = 0; i < n_grid_spaces; i++) {
         grid_to_particle_list_map[i] = NULL;
     }
 
     return grid_to_particle_list_map;
 }
+
 
 pi_to_pa_map_t gen_particle_idx_to_addr_map() {
     pi_to_pa_map_t particle_idx_to_addr_map;
@@ -34,6 +39,23 @@ pi_to_pa_map_t gen_particle_idx_to_addr_map() {
             N_PARTICLES * sizeof(Particle*));
 
     return particle_idx_to_addr_map;
+}
+
+
+grid_mutex_set_t gen_grid_mutex_set() {
+    grid_mutex_set_t mutex_set;
+    uint32_t n_grid_spaces;
+
+    n_grid_spaces = (uint32_t)pow(EXP_SPACE_DIM / H, 3);
+
+    cudaMallocManaged(&mutex_set, n_grid_spaces * sizeof(int));
+
+    /* ensure each mutex starts as unlocked */
+    for(size_t i = 0; i < n_grid_spaces; i++) {
+        mutex_set[i] = 0;
+    }
+
+    return mutex_set;
 }
 
 
@@ -228,6 +250,7 @@ __device__ void device_remove_from_grid(gri_to_pl_map_t grid_to_particle_list_ma
                                         uint32_t grid_idx,
                                         Particle *del_particle,
                                         grid_mutex_set_t mutex_set) {
+
     Particle *del_prev_particle;
     Particle *del_next_particle;
 

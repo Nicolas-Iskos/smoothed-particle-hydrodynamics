@@ -94,6 +94,7 @@ pi_to_gri_map_t gen_particle_idx_to_grid_idx_map();
 
 pi_to_pa_map_t gen_particle_idx_to_addr_map();
 
+grid_mutex_set_t gen_grid_mutex_set();
 
 void initialize_dam_break(gri_to_pl_map_t grid_to_particle_list_map,
                           pi_to_gri_map_t particle_idx_to_grid_idx_map,
