@@ -162,6 +162,7 @@ void host_insert_into_grid(gri_to_pl_map_t grid_to_particle_list_map,
     }
 }
 
+
 __global__ void update_particle_to_grid_map(
                                 pi_to_pa_map_t particle_idx_to_addr_map,
                                 pi_to_gri_map_t last_particle_to_grid_map,
@@ -183,21 +184,79 @@ __global__ void update_particle_to_grid_map(
     curr_particle_to_grid_map[particle_idx] = updated_grid_idx;
 }
 
+
 __global__ void remove_relevant_particles_from_grid(
                                 gri_to_pl_map_t grid_to_particle_list_map,
                                 pi_to_gri_map_t last_particle_to_grid_map,
                                 pi_to_gri_map_t curr_particle_to_grid_map,
                                 pi_to_pa_map_t particle_idx_to_addr_map) {
+    uint32_t grid_idx;
+    Particle *del_particle;
+    Particle *del_prev_particle;
+    Particle *del_next_particle;
+
+    grid_idx = blockDim.x * blockIdx.x + threadIdx.x;
+
+    for(uint32_t particle_idx = 0; particle_idx < N_PARTICLES; particle_idx++){
+        if((last_particle_to_grid_map[particle_idx] == grid_idx) &&
+           (curr_particle_to_grid_map[particle_idx] != grid_idx)) {
+
+            del_particle = particle_idx_to_addr_map[particle_idx];
+            del_prev_particle = del_particle->prev_particle;
+            del_next_particle = del_particle->next_particle;
+
+            if(del_prev_particle == NULL && del_next_particle == NULL) {
+                grid_to_particle_list_map[grid_idx] = NULL;
+            }
+            else if(del_prev_particle == NULL) {
+                grid_to_particle_list_map[grid_idx] = del_next_particle;
+                del_next_particle->prev_particle = NULL;
+            }
+            else if(del_next_particle == NULL) {
+                del_prev_particle->next_particle = NULL;
+            }
+            else {
+                del_prev_particle->next_particle = del_next_particle;
+                del_next_particle->prev_particle = del_prev_particle;
+            }
+        }
+    }
 }
+
 
 __global__ void add_relevant_particles_to_grid(
                                 gri_to_pl_map_t grid_to_particle_list_map,
                                 pi_to_gri_map_t last_particle_to_grid_map,
                                 pi_to_gri_map_t curr_particle_to_grid_map,
                                 pi_to_pa_map_t particle_idx_to_addr_map) {
+    uint32_t grid_idx;
+    Particle *particle;
+    Particle *first_particle_in_grid_slot;
+
+    grid_idx = blockDim.x * blockIdx.x + threadIdx.x;
+
+    for(uint32_t particle_idx = 0; particle_idx < N_PARTICLES; particle_idx++){
+        if((last_particle_to_grid_map[particle_idx] != grid_idx) &&
+           (curr_particle_to_grid_map[particle_idx] == grid_idx)) {
+
+            particle = particle_idx_to_addr_map[particle_idx];
+            first_particle_in_grid_slot = grid_to_particle_list_map[grid_idx];
+
+            /* add particle to the correct grid space doubly linked list */
+            if(first_particle_in_grid_slot == NULL) {
+                particle->prev_particle = NULL;
+                particle->next_particle = NULL;
+                grid_to_particle_list_map[grid_idx] = particle;
+            }
+            else {
+                first_particle_in_grid_slot->prev_particle = particle;
+                particle->next_particle = first_particle_in_grid_slot;
+                particle->prev_particle = NULL;
+                grid_to_particle_list_map[grid_idx] = particle;
+            }
+        }
+    }
 }
-
-
 
 
 __host__ __device__ uint32_t calculate_grid_idx(float position[]) {
@@ -219,76 +278,3 @@ __host__ __device__ uint32_t calculate_grid_idx(float position[]) {
 
     return grid_idx;
 }
-
-
-
-
-#if 0
-
-__device__ void device_insert_into_grid(gri_to_pl_map_t grid_to_particle_list_map,
-                                        uint32_t grid_idx,
-                                        pi_to_gri_map_t particle_to_grid_map,
-                                        uint32_t particle_idx,
-                                        Particle *new_particle,
-                                        grid_mutex_set_t mutex_set) {
-
-    Particle *first_particle_in_grid_slot;
-
-    lock_grid_mutex(mutex_set, grid_idx);
-
-    first_particle_in_grid_slot = grid_to_particle_list_map[grid_idx];
-
-    /* add particle to the correct grid space doubly linked list */
-    if(first_particle_in_grid_slot == NULL) {
-        new_particle->prev_particle = NULL;
-        new_particle->next_particle = NULL;
-        grid_to_particle_list_map[grid_idx] = new_particle;
-    }
-    else {
-        first_particle_in_grid_slot->prev_particle = new_particle;
-        new_particle->next_particle = first_particle_in_grid_slot;
-        new_particle->prev_particle = NULL;
-        grid_to_particle_list_map[grid_idx] = new_particle;
-    }
-
-    unlock_grid_mutex(mutex_set, grid_idx);
-
-    /* record grid space in which the new particle is held */
-    particle_to_grid_map[particle_idx] = grid_idx;
-}
-
-
-__device__ void device_remove_from_grid(gri_to_pl_map_t grid_to_particle_list_map,
-                                        uint32_t grid_idx,
-                                        Particle *del_particle,
-                                        grid_mutex_set_t mutex_set) {
-
-    Particle *del_prev_particle;
-    Particle *del_next_particle;
-
-    lock_grid_mutex(mutex_set, grid_idx);
-
-
-
-    /* remove the particle from the linked list */
-    del_prev_particle = del_particle->prev_particle;
-    del_next_particle = del_particle->next_particle;
-
-    if(del_prev_particle == NULL && del_next_particle == NULL) {
-        grid_to_particle_list_map[grid_idx] = NULL;
-    }
-    else if(del_prev_particle == NULL) {
-        grid_to_particle_list_map[grid_idx] = del_next_particle;
-        del_next_particle->prev_particle = NULL;
-    }
-    else if(del_next_particle == NULL) {
-        del_prev_particle->next_particle = NULL;
-    }
-    else {
-        del_prev_particle->next_particle = del_next_particle;
-        del_next_particle->prev_particle = del_prev_particle;
-    }
-
-    unlock_grid_mutex(mutex_set, grid_idx);
-}
-#endif

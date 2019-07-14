@@ -27,9 +27,9 @@ void host_count_particles(gri_to_pl_map_t grid_to_particle_list_map,
 
     uint32_t num_grid_slots = (uint32_t)pow(EXP_SPACE_DIM / H, 3);
 
-    for(size_t i = 0; i < num_grid_slots; i++) {
-        uint16_t grid_count_forward = 0;
-        uint16_t grid_count_backward = 0;
+    for(uint32_t i = 0; i < num_grid_slots; i++) {
+        uint32_t grid_count_forward = 0;
+        uint32_t grid_count_backward = 0;
         Particle *prev_particle = NULL;
 
         for(Particle *p = grid_to_particle_list_map[i]; p != NULL;
@@ -37,6 +37,7 @@ void host_count_particles(gri_to_pl_map_t grid_to_particle_list_map,
             prev_particle = p;
             grid_count_forward++;
         }
+
         particles_per_grid_slot_forward[i] = grid_count_forward;
 
         for(Particle *p = prev_particle; p != NULL;
@@ -71,6 +72,9 @@ bool host_grid_consistency_check(gri_to_pl_map_t grid_to_particle_list_map) {
         }
     }
 
+    cudaFree(particles_per_grid_slot_forward);
+    cudaFree(particles_per_grid_slot_backward);
+
     return true;
 }
 
@@ -80,41 +84,53 @@ void output_curr_particle_to_grid_map(pi_to_gri_map_t curr_particle_to_grid_map)
         printf("particle idx, grid idx: %zu , %d\n", i, curr_particle_to_grid_map[i]);
     }
 }
-/*
-__global__ void insert_particle_test(gri_to_pl_map_t grid_to_particle_list_map,
-                                     pi_to_gri_map_t curr_particle_to_grid_map,
-                                     pi_to_pa_map_t particle_idx_to_addr_map,
-                                     grid_mutex_set_t mutex_set) {
 
-    uint32_t particle_idx = blockIdx.x * blockDim.x + threadIdx.x;
-    uint32_t grid_idx = particle_idx % 8;
+void insert_particles_test(gri_to_pl_map_t grid_to_particle_list_map,
+                           pi_to_gri_map_t curr_particle_to_grid_map,
+                           pi_to_pa_map_t particle_idx_to_addr_map) {
 
-    Particle *new_particle = particle_idx_to_addr_map[particle_idx];
+    pi_to_gri_map_t test_last_particle_to_grid_map;
+    pi_to_gri_map_t test_curr_particle_to_grid_map;
 
-    device_insert_into_grid(grid_to_particle_list_map,
-                            grid_idx,
-                            curr_particle_to_grid_map,
-                            particle_idx,
-                            new_particle,
-                            mutex_set);
+    cudaMallocManaged(&test_last_particle_to_grid_map, N_PARTICLES * sizeof(uint32_t));
+    cudaMallocManaged(&test_curr_particle_to_grid_map, N_PARTICLES * sizeof(uint32_t));
+
+    cudaMemcpy(test_curr_particle_to_grid_map, curr_particle_to_grid_map,
+               N_PARTICLES * sizeof(uint32_t), cudaMemcpyDefault);
+
+    cudaMemset(test_last_particle_to_grid_map, -1, N_PARTICLES * sizeof(uint32_t));
+
+    add_relevant_particles_to_grid<<<128, 256>>>(grid_to_particle_list_map,
+                                                 test_last_particle_to_grid_map,
+                                                 test_curr_particle_to_grid_map,
+                                                 particle_idx_to_addr_map);
+    cudaDeviceSynchronize();
+    cudaFree(test_last_particle_to_grid_map);
+    cudaFree(test_curr_particle_to_grid_map);
 }
 
 
-__global__ void delete_particles_test(gri_to_pl_map_t grid_to_particle_list_map,
-                                      pi_to_gri_map_t curr_particle_to_grid_map,
-                                      pi_to_pa_map_t particle_idx_to_addr_map,
-                                      grid_mutex_set_t mutex_set) {
+void delete_particles_test(gri_to_pl_map_t grid_to_particle_list_map,
+                           pi_to_gri_map_t curr_particle_to_grid_map,
+                           pi_to_pa_map_t particle_idx_to_addr_map) {
 
-    uint32_t particle_idx = blockIdx.x * blockDim.x + threadIdx.x;
-    uint32_t grid_idx = curr_particle_to_grid_map[particle_idx];
+    pi_to_gri_map_t test_last_particle_to_grid_map;
+    pi_to_gri_map_t test_curr_particle_to_grid_map;
 
-    Particle *del_particle = particle_idx_to_addr_map[particle_idx];
+    cudaMallocManaged(&test_last_particle_to_grid_map, N_PARTICLES * sizeof(uint32_t));
+    cudaMallocManaged(&test_curr_particle_to_grid_map, N_PARTICLES * sizeof(uint32_t));
 
-    device_remove_from_grid(grid_to_particle_list_map,
-                            grid_idx,
-                            del_particle,
-                            mutex_set);
+    cudaMemcpy(test_last_particle_to_grid_map, curr_particle_to_grid_map,
+               N_PARTICLES * sizeof(uint32_t), cudaMemcpyDefault);
+
+    cudaMemset(test_curr_particle_to_grid_map, -1, N_PARTICLES * sizeof(uint32_t));
+
+    remove_relevant_particles_from_grid<<<128, 256>>>(grid_to_particle_list_map,
+                                                      test_last_particle_to_grid_map,
+                                                      test_curr_particle_to_grid_map,
+                                                      particle_idx_to_addr_map);
+    cudaDeviceSynchronize();
+    cudaFree(test_last_particle_to_grid_map);
+    cudaFree(test_curr_particle_to_grid_map);
 }
-*/
-
 
