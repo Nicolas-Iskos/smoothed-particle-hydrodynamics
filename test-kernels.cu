@@ -74,15 +74,15 @@ bool host_grid_consistency_check(gri_to_pl_map_t grid_to_particle_list_map) {
     return true;
 }
 
-void output_particle_idx_to_grid_idx_map(pi_to_gri_map_t particle_idx_to_grid_idx_map) {
+void output_curr_particle_to_grid_map(pi_to_gri_map_t curr_particle_to_grid_map) {
 
     for(size_t i = 0; i < N_PARTICLES; i++) {
-        printf("particle idx, grid idx: %zu , %d\n", i, particle_idx_to_grid_idx_map[i]);
+        printf("particle idx, grid idx: %zu , %d\n", i, curr_particle_to_grid_map[i]);
     }
 }
-
+/*
 __global__ void insert_particle_test(gri_to_pl_map_t grid_to_particle_list_map,
-                                     pi_to_gri_map_t particle_idx_to_grid_idx_map,
+                                     pi_to_gri_map_t curr_particle_to_grid_map,
                                      pi_to_pa_map_t particle_idx_to_addr_map,
                                      grid_mutex_set_t mutex_set) {
 
@@ -93,7 +93,7 @@ __global__ void insert_particle_test(gri_to_pl_map_t grid_to_particle_list_map,
 
     device_insert_into_grid(grid_to_particle_list_map,
                             grid_idx,
-                            particle_idx_to_grid_idx_map,
+                            curr_particle_to_grid_map,
                             particle_idx,
                             new_particle,
                             mutex_set);
@@ -101,12 +101,12 @@ __global__ void insert_particle_test(gri_to_pl_map_t grid_to_particle_list_map,
 
 
 __global__ void delete_particles_test(gri_to_pl_map_t grid_to_particle_list_map,
-                                      pi_to_gri_map_t particle_idx_to_grid_idx_map,
+                                      pi_to_gri_map_t curr_particle_to_grid_map,
                                       pi_to_pa_map_t particle_idx_to_addr_map,
                                       grid_mutex_set_t mutex_set) {
 
     uint32_t particle_idx = blockIdx.x * blockDim.x + threadIdx.x;
-    uint32_t grid_idx = particle_idx_to_grid_idx_map[particle_idx];
+    uint32_t grid_idx = curr_particle_to_grid_map[particle_idx];
 
     Particle *del_particle = particle_idx_to_addr_map[particle_idx];
 
@@ -115,6 +115,6 @@ __global__ void delete_particles_test(gri_to_pl_map_t grid_to_particle_list_map,
                             del_particle,
                             mutex_set);
 }
-
+*/
 
 

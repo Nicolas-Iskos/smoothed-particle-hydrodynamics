@@ -13,9 +13,9 @@ void host_count_particles_in_grid_slots(gri_to_pl_map_t grid_to_particle_list_ma
 bool host_grid_consistency_check(gri_to_pl_map_t grid_to_particle_list_map);
 
 
-void output_particle_idx_to_grid_idx_map(pi_to_gri_map_t particle_idx_to_grid_idx_map);
+void output_particle_idx_to_grid_idx_map(pi_to_gri_map_t curr_particle_to_grid_map);
 
-
+/*
 __global__ void insert_particle_test(gri_to_pl_map_t grid_to_particle_list_map,
                                      pi_to_gri_map_t particle_idx_to_grid_idx_map,
                                      pi_to_pa_map_t particle_idx_to_addr_map,
@@ -25,3 +25,4 @@ __global__ void delete_particles_test(gri_to_pl_map_t grid_to_particle_list_map,
                                       pi_to_gri_map_t particle_idx_to_grid_idx_map,
                                       pi_to_pa_map_t particle_idx_to_addr_map,
                                       grid_mutex_set_t mutex_set);
+*/
