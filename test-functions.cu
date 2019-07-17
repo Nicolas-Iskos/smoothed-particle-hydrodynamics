@@ -1,7 +1,7 @@
 #include "particle-data-structures.h"
 #include "simulation-parameters.h"
 
-#include "test-kernels.h"
+#include "test-functions.h"
 
 #include <stdint.h>
 #include <stdio.h>
@@ -100,7 +100,7 @@ void insert_particles_test(gri_to_pl_map_t grid_to_particle_list_map,
 
     cudaMemset(test_last_particle_to_grid_map, -1, N_PARTICLES * sizeof(uint32_t));
 
-    add_relevant_particles_to_grid<<<128, 256>>>(grid_to_particle_list_map,
+    perform_additions_to_grid<<<128, 256>>>(grid_to_particle_list_map,
                                                  test_last_particle_to_grid_map,
                                                  test_curr_particle_to_grid_map,
                                                  particle_idx_to_addr_map);
@@ -125,7 +125,7 @@ void delete_particles_test(gri_to_pl_map_t grid_to_particle_list_map,
 
     cudaMemset(test_curr_particle_to_grid_map, -1, N_PARTICLES * sizeof(uint32_t));
 
-    remove_relevant_particles_from_grid<<<128, 256>>>(grid_to_particle_list_map,
+    perform_removals_from_grid<<<128, 256>>>(grid_to_particle_list_map,
                                                       test_last_particle_to_grid_map,
                                                       test_curr_particle_to_grid_map,
                                                       particle_idx_to_addr_map);

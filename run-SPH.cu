@@ -4,7 +4,7 @@
 #include "calculate-field.h"
 #include "integrate.h"
 
-#include "test-kernels.h"
+#include "test-functions.h"
 #include <stdio.h>
 #include <assert.h>
 

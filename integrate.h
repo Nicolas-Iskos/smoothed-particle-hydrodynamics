@@ -1,2 +1,3 @@
-__global__ void leapfrog_integrate(float *position_field, float *velocity_field,
-                                   float *force_field);
+__global__ void euler_integrate(pi_to_pa_map_t particle_idx_to_addr_map);
+
+__global__ void leapfrog_integrate(pi_to_pa_map_t particle_idx_to_addr_map);

@@ -70,16 +70,16 @@ void initialize_dam_break(gri_to_pl_map_t grid_to_particle_list_map,
     n_particles_per_dim = (uint32_t)cbrt((float)N_PARTICLES);
     n_particles_per_dim_pow2 = (uint32_t)pow(n_particles_per_dim, 2);
 
-    cubic_block_rad = n_particles_per_dim * PARTICLE_RAD;
-    particle_spacing = 2 * PARTICLE_RAD;
+    cubic_block_rad = n_particles_per_dim * R_PARTICLE;
+    particle_spacing = 2 * R_PARTICLE;
 
     space_center[0] = (float)EXP_SPACE_DIM / 2;
     space_center[1] = (float)EXP_SPACE_DIM / 2;
     space_center[2] = (float)EXP_SPACE_DIM / 2;
 
-    init_particle_pos[0] = space_center[0] + cubic_block_rad - PARTICLE_RAD;
-    init_particle_pos[1] = space_center[1] - cubic_block_rad + PARTICLE_RAD;
-    init_particle_pos[2] = space_center[2] + cubic_block_rad - PARTICLE_RAD;
+    init_particle_pos[0] = space_center[0] + cubic_block_rad - R_PARTICLE;
+    init_particle_pos[1] = space_center[1] - cubic_block_rad + R_PARTICLE;
+    init_particle_pos[2] = space_center[2] + cubic_block_rad - R_PARTICLE;
 
     /*
      * Arrange each particle into its correct grid slot for the
@@ -185,7 +185,7 @@ __global__ void update_particle_to_grid_map(
 }
 
 
-__global__ void remove_relevant_particles_from_grid(
+__global__ void perform_removals_from_grid(
                                 gri_to_pl_map_t grid_to_particle_list_map,
                                 pi_to_gri_map_t last_particle_to_grid_map,
                                 pi_to_gri_map_t curr_particle_to_grid_map,
@@ -224,7 +224,7 @@ __global__ void remove_relevant_particles_from_grid(
 }
 
 
-__global__ void add_relevant_particles_to_grid(
+__global__ void perform_additions_to_grid(
                                 gri_to_pl_map_t grid_to_particle_list_map,
                                 pi_to_gri_map_t last_particle_to_grid_map,
                                 pi_to_gri_map_t curr_particle_to_grid_map,

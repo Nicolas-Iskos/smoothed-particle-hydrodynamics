@@ -2,7 +2,7 @@
 #define PARTICLE_DATA_STRUCTURES_H
 
 #include <stdint.h>
-#include <array>
+
 /*
  * classe used to allow new operator
  * to allocate space in unified memory
@@ -26,6 +26,11 @@ class Managed {
  * */
 class Particle : public Managed {
     public:
+        /* in each of these vectors,
+         * element 0 is the x component,
+         * element 1 is the y component,
+         * element 2 is the z component
+         * */
         float position[3];
         float velocity[3];
         float force[3];
@@ -41,7 +46,7 @@ class Particle : public Managed {
 
 
 /*****************************************************************************/
-/******************************* DATA TYPES **********************************/
+/***************************** DATA STRUCTURES *******************************/
 /*****************************************************************************/
 
 /*
@@ -52,14 +57,17 @@ class Particle : public Managed {
 typedef Particle **gri_to_pl_map_t;
 
 /*
- * array whose indices correspond to each particle - an element
- * of the array corresponds to the grid space in which that
+ * array whose indices correspond to each particle index.
+ * An element of the array corresponds to the grid space in which that
  * particle exists
  * */
 typedef uint32_t *pi_to_gri_map_t;
 
-
-
+/*
+ * array whose indices correspond to each particle index.
+ * An element of the array corresponds to the memory address of
+ * that particle
+ * */
 typedef Particle **pi_to_pa_map_t;
 
 
@@ -86,18 +94,10 @@ void initialize_dam_break(gri_to_pl_map_t grid_to_particle_list_map,
                           pi_to_gri_map_t curr_particle_to_grid_map,
                           pi_to_pa_map_t particle_idx_to_addr_map);
 
-
-
-
-
-
 /*
  * included below is a set of general purpose data structure manipulation
  * functions with versions for both the host and device
  * */
-
-
-
 
 /* this function is used for the host executed particle data structure
  * initialization functions
@@ -117,33 +117,24 @@ __global__ void update_particle_to_grid_map(
                            pi_to_pa_map_t particle_idx_to_addr_map);
 
 
-
-__global__ void remove_relevant_particles_from_grid(
+__global__ void perform_removals_from_grid(
                            gri_to_pl_map_t grid_to_particle_list_map,
                            pi_to_gri_map_t last_particle_to_grid_map,
                            pi_to_gri_map_t curr_particle_to_grid_map,
                            pi_to_pa_map_t particle_idx_to_addr_map);
 
-__global__ void add_relevant_particles_to_grid(
+__global__ void perform_additions_to_grid(
                            gri_to_pl_map_t grid_to_particle_list_map,
                            pi_to_gri_map_t last_particle_to_grid_map,
                            pi_to_gri_map_t curr_particle_to_grid_map,
                            pi_to_pa_map_t particle_idx_to_addr_map);
 
-__host__ __device__ uint32_t calculate_grid_idx(float position[]);
 
 /*
-__device__ void device_insert_into_grid(gri_to_pl_map_t grid_to_particle_list_map,
-                                        uint32_t grid_idx,
-                                        pi_to_gri_map_t particle_idx_to_grid_idx_map,
-                                        uint32_t particle_idx,
-                                        Particle *new_particle);
+ * included below is a set of accessor and utility functions to be used
+ * on the data structures described above
+ * */
 
-__device__ void device_remove_from_grid(gri_to_pl_map_t grid_to_particle_list_map,
-                                        uint32_t grid_idx,
-                                        Particle *del_particle);
-*/
-
-
+__host__ __device__ uint32_t calculate_grid_idx(float position[]);
 
 #endif
