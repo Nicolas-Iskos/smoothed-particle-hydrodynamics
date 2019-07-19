@@ -1,5 +1,5 @@
 #include "particle-data-structures.h"
-#include <stdint.h>
+#include <cstdint>
 
 __global__ void device_count_particles_in_grid_slots(
                                      gri_to_pl_map_t grid_to_particle_list_map,

@@ -5,8 +5,8 @@
 #include "integrate.h"
 
 #include "test-functions.h"
-#include <stdio.h>
-#include <assert.h>
+#include <cstdio>
+#include <cassert>
 
 int main() {
 

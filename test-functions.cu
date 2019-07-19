@@ -3,8 +3,8 @@
 
 #include "test-functions.h"
 
-#include <stdint.h>
-#include <stdio.h>
+#include <cstdint>
+#include <cstdio>
 
 __global__ void device_count_particles_in_grid_slots(gri_to_pl_map_t grid_to_particle_list_map,
                                               uint32_t *particles_per_grid_slot) {

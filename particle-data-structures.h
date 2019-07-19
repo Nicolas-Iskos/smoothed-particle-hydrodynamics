@@ -1,7 +1,7 @@
 #ifndef PARTICLE_DATA_STRUCTURES_H
 #define PARTICLE_DATA_STRUCTURES_H
 
-#include <stdint.h>
+#include <cstdint>
 
 /*
  * classe used to allow new operator
@@ -135,6 +135,10 @@ __global__ void perform_additions_to_grid(
  * on the data structures described above
  * */
 
-__host__ __device__ uint32_t calculate_grid_idx(float position[]);
+__host__ __device__ uint32_t particle_pos_to_grid_idx(float position[3]);
 
+__host__ __device__ uint32_t grid_pos_to_grid_idx(uint32_t grid_coordinates[3]);
+
+__host__ __device__ void grid_idx_to_grid_pos(uint32_t grid_idx,
+                                              uint32_t (&grid_coordinates)[3]);
 #endif

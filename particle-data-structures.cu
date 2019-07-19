@@ -1,7 +1,7 @@
 #include "particle-data-structures.h"
 #include "simulation-parameters.h"
 
-#include <stdint.h>
+#include <cstdint>
 
 
 pi_to_gri_map_t gen_particle_to_grid_map() {
@@ -126,7 +126,7 @@ void initialize_dam_break(gri_to_pl_map_t grid_to_particle_list_map,
         particle_idx_to_addr_map[particle_idx] = new_particle;
 
         /* record the grid index of each particle */
-        grid_idx = calculate_grid_idx(new_particle->position);
+        grid_idx = particle_pos_to_grid_idx(new_particle->position);
         curr_particle_to_grid_map[particle_idx] = grid_idx;
 
         /*
@@ -175,7 +175,7 @@ __global__ void update_particle_to_grid_map(
     particle_idx = blockDim.x * blockIdx.x + threadIdx.x;
     particle = particle_idx_to_addr_map[particle_idx];
     pre_update_grid_idx = curr_particle_to_grid_map[particle_idx];
-    updated_grid_idx = calculate_grid_idx(particle->position);
+    updated_grid_idx = particle_pos_to_grid_idx(particle->position);
 
     /* set the pre-updated grid_idx in the last particle to grid map */
     last_particle_to_grid_map[particle_idx] = pre_update_grid_idx;
@@ -259,22 +259,43 @@ __global__ void perform_additions_to_grid(
 }
 
 
-__host__ __device__ uint32_t calculate_grid_idx(float position[]) {
-    uint32_t grid_space_layer;
-    uint32_t grid_space_col;
-    uint32_t grid_space_row;
-    uint32_t grid_idx;
+__host__ __device__ uint32_t particle_pos_to_grid_idx(float position[3]) {
+    uint32_t grid_pos[3];
+
+    /* grid space column is related to y coordinate */
+    grid_pos[0] = (uint16_t)(position[1] / H);
+
+    /* grid space row is related to z coordinate */
+    grid_pos[1] = (uint16_t)((EXP_SPACE_DIM - position[2]) / H);
+
+    /* grid space layer is related to x coordinate */
+    grid_pos[2] = (uint16_t)((EXP_SPACE_DIM - position[0]) / H);
+
+    return grid_pos_to_grid_idx(grid_pos);
+}
+
+
+__host__ __device__ uint32_t grid_pos_to_grid_idx(uint32_t grid_pos[3]) {
+
     constexpr uint32_t n_grid_spaces_per_dim = (uint32_t)(EXP_SPACE_DIM / H);
     constexpr uint32_t n_grid_spaces_per_dim_pow2 =
                        (uint32_t)((EXP_SPACE_DIM * EXP_SPACE_DIM) / (H * H));
 
-    grid_space_layer = (uint16_t)((EXP_SPACE_DIM - position[0]) / H);
-    grid_space_col = (uint16_t)(position[1] / H);
-    grid_space_row = (uint16_t)((EXP_SPACE_DIM - position[2]) / H);
+    /* column + row * num_cols + layer * num_rows * num_cols */
+    return grid_pos[0] +
+           grid_pos[1] * n_grid_spaces_per_dim +
+           grid_pos[2] * n_grid_spaces_per_dim_pow2;
+}
 
-    grid_idx = grid_space_col +
-               grid_space_row * n_grid_spaces_per_dim +
-               grid_space_layer * n_grid_spaces_per_dim_pow2;
 
-    return grid_idx;
+__host__ __device__ void grid_idx_to_grid_pos(uint32_t grid_idx,
+                                              uint32_t (&grid_coordinates)[3]) {
+
+    constexpr uint32_t n_grid_spaces_per_dim = (uint32_t)(EXP_SPACE_DIM / H);
+    constexpr uint32_t n_grid_spaces_per_dim_pow2 =
+                       (uint32_t)((EXP_SPACE_DIM * EXP_SPACE_DIM) / (H * H));
+
+    grid_coordinates[0] = grid_idx % n_grid_spaces_per_dim;
+    grid_coordinates[1] = (grid_idx % n_grid_spaces_per_dim_pow2) / n_grid_spaces_per_dim;
+    grid_coordinates[2] = grid_idx / n_grid_spaces_per_dim_pow2;
 }
