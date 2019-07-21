@@ -23,3 +23,8 @@ void insert_particles_test(gri_to_pl_map_t grid_to_particle_list_map,
 void delete_particles_test(gri_to_pl_map_t grid_to_particle_list_map,
                            pi_to_gri_map_t curr_particle_to_grid_map,
                            pi_to_pa_map_t particle_idx_to_addr_map);
+
+void calculate_density_test(gri_to_pl_map_t grid_to_particle_list_map,
+                            pi_to_gri_map_t curr_particle_to_grid_map,
+                            pi_to_pa_map_t particle_idx_to_addr_map);
+

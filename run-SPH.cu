@@ -17,6 +17,7 @@ int main() {
 
     pi_to_pa_map_t particle_idx_to_addr_map = gen_particle_idx_to_addr_map();
 
+#if 0
     printf("initialization\n");
     initialize_dam_break(grid_to_particle_list_map,
                          last_particle_to_grid_map,
@@ -38,5 +39,13 @@ int main() {
                           particle_idx_to_addr_map);
 
     assert(host_grid_consistency_check(grid_to_particle_list_map));
+#endif
+
+    calculate_density_test(grid_to_particle_list_map,
+                           curr_particle_to_grid_map,
+                           particle_idx_to_addr_map);
+
+
+
 }
 

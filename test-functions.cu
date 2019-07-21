@@ -1,5 +1,7 @@
 #include "particle-data-structures.h"
 #include "simulation-parameters.h"
+#include "smoothing-kernels.h"
+#include "calculate-field.h"
 
 #include "test-functions.h"
 
@@ -134,3 +136,14 @@ void delete_particles_test(gri_to_pl_map_t grid_to_particle_list_map,
     cudaFree(test_curr_particle_to_grid_map);
 }
 
+
+void calculate_density_test(gri_to_pl_map_t grid_to_particle_list_map,
+                            pi_to_gri_map_t curr_particle_to_grid_map,
+                            pi_to_pa_map_t particle_idx_to_addr_map) {
+
+    calculate_density<<<(N_PARTICLES/128), 128>>>(grid_to_particle_list_map,
+                                                  curr_particle_to_grid_map,
+                                                  particle_idx_to_addr_map,
+                                                  &cubic_spline_kernel);
+
+}

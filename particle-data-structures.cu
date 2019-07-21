@@ -259,23 +259,23 @@ __global__ void perform_additions_to_grid(
 }
 
 
-__host__ __device__ uint32_t particle_pos_to_grid_idx(float position[3]) {
+__host__ __device__ uint32_t particle_pos_to_grid_idx(float *particle_pos) {
     uint32_t grid_pos[3];
 
     /* grid space column is related to y coordinate */
-    grid_pos[0] = (uint16_t)(position[1] / H);
+    grid_pos[0] = (uint16_t)(particle_pos[1] / H);
 
     /* grid space row is related to z coordinate */
-    grid_pos[1] = (uint16_t)((EXP_SPACE_DIM - position[2]) / H);
+    grid_pos[1] = (uint16_t)((EXP_SPACE_DIM - particle_pos[2]) / H);
 
     /* grid space layer is related to x coordinate */
-    grid_pos[2] = (uint16_t)((EXP_SPACE_DIM - position[0]) / H);
+    grid_pos[2] = (uint16_t)((EXP_SPACE_DIM - particle_pos[0]) / H);
 
     return grid_pos_to_grid_idx(grid_pos);
 }
 
 
-__host__ __device__ uint32_t grid_pos_to_grid_idx(uint32_t grid_pos[3]) {
+__host__ __device__ uint32_t grid_pos_to_grid_idx(uint32_t *grid_pos) {
 
     constexpr uint32_t n_grid_spaces_per_dim = (uint32_t)(EXP_SPACE_DIM / H);
     constexpr uint32_t n_grid_spaces_per_dim_pow2 =
@@ -289,13 +289,13 @@ __host__ __device__ uint32_t grid_pos_to_grid_idx(uint32_t grid_pos[3]) {
 
 
 __host__ __device__ void grid_idx_to_grid_pos(uint32_t grid_idx,
-                                              uint32_t (&grid_coordinates)[3]) {
+                                              uint32_t *grid_pos) {
 
     constexpr uint32_t n_grid_spaces_per_dim = (uint32_t)(EXP_SPACE_DIM / H);
     constexpr uint32_t n_grid_spaces_per_dim_pow2 =
                        (uint32_t)((EXP_SPACE_DIM * EXP_SPACE_DIM) / (H * H));
 
-    grid_coordinates[0] = grid_idx % n_grid_spaces_per_dim;
-    grid_coordinates[1] = (grid_idx % n_grid_spaces_per_dim_pow2) / n_grid_spaces_per_dim;
-    grid_coordinates[2] = grid_idx / n_grid_spaces_per_dim_pow2;
+    grid_pos[0] = grid_idx % n_grid_spaces_per_dim;
+    grid_pos[1] = (grid_idx % n_grid_spaces_per_dim_pow2) / n_grid_spaces_per_dim;
+    grid_pos[2] = grid_idx / n_grid_spaces_per_dim_pow2;
 }
