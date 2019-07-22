@@ -12,7 +12,7 @@
 #define R_PARTICLE                  0.01
 
 /* SPH parameters */
-#define H                           0.03125
+#define H                           0.02
 
 /* experiment evolution parameters */
 #define EXP_SPACE_DIM               1

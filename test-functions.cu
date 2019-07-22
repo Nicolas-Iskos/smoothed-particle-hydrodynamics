@@ -107,6 +107,7 @@ void insert_particles_test(gri_to_pl_map_t grid_to_particle_list_map,
                                                  test_curr_particle_to_grid_map,
                                                  particle_idx_to_addr_map);
     cudaDeviceSynchronize();
+
     cudaFree(test_last_particle_to_grid_map);
     cudaFree(test_curr_particle_to_grid_map);
 }
@@ -141,9 +142,20 @@ void calculate_density_test(gri_to_pl_map_t grid_to_particle_list_map,
                             pi_to_gri_map_t curr_particle_to_grid_map,
                             pi_to_pa_map_t particle_idx_to_addr_map) {
 
-    calculate_density<<<(N_PARTICLES/128), 128>>>(grid_to_particle_list_map,
+    calculate_density<<<(N_PARTICLES/64), 64>>>(grid_to_particle_list_map,
                                                   curr_particle_to_grid_map,
-                                                  particle_idx_to_addr_map,
-                                                  &cubic_spline_kernel);
+                                                  particle_idx_to_addr_map);
+
+    cudaDeviceSynchronize();
+    int count = 0;
+    for(uint32_t i = 0; i < N_PARTICLES; i++) {
+        printf("density: %f\n",particle_idx_to_addr_map[i]->density);
+
+        if(particle_idx_to_addr_map[i]->density > 124.9 &&
+           particle_idx_to_addr_map[i]->density < 125) {
+            count++;
+        }
+    }
+    printf("%d\n",count);
 
 }

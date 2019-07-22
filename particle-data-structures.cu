@@ -122,6 +122,9 @@ void initialize_dam_break(gri_to_pl_map_t grid_to_particle_list_map,
         new_particle->pressure = 0;
         new_particle->internal_energy = 0;
 
+        new_particle->prev_particle = NULL;
+        new_particle->next_particle = NULL;
+
         /* record the address of the new particle */
         particle_idx_to_addr_map[particle_idx] = new_particle;
 
