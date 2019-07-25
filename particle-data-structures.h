@@ -141,4 +141,7 @@ __host__ __device__ uint32_t grid_pos_to_grid_idx(uint32_t *grid_pos);
 
 __host__ __device__ void grid_idx_to_grid_pos(uint32_t grid_idx,
                                               uint32_t *grid_pos);
+
+
+
 #endif

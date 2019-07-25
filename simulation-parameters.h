@@ -20,6 +20,9 @@
 
 /* physical constants */
 #define G                           9.8
+#define R                           8.134
+#define M                           0.018
+#define T                           300
 
 #endif
 
