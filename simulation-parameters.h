@@ -13,6 +13,10 @@
 
 /* SPH parameters */
 #define H                           0.02
+#define EPSILON                     0.01
+#define A_SPH                       1
+#define B_SPH                       2
+#define GAMMA                       1.330
 
 /* experiment evolution parameters */
 #define EXP_SPACE_DIM               1
@@ -23,6 +27,7 @@
 #define R                           8.134
 #define M                           0.018
 #define T                           300
+#define C                           1500
 
 #endif
 
