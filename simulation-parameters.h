@@ -6,6 +6,9 @@
 #ifndef SIMULATION_PARAMETERS_H
 #define SIMULATION_PARAMETERS_H
 
+/* CUDA-specific parameters */
+#define PARTICLES_PER_BLOCK         128
+#define GRID_SPACES_PER_BLOCK        128
 /* particle parameters */
 #define N_PARTICLES                 512
 #define M_PARTICLE                  0.005

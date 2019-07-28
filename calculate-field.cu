@@ -28,6 +28,10 @@ __global__ void calculate_density(gri_to_pl_map_t grid_to_particle_list_map,
 
     curr_idx = blockDim.x * blockIdx.x + threadIdx.x;
 
+    if(curr_idx >= N_PARTICLES) {
+        return;
+    }
+
     curr_particle = particle_idx_to_addr_map[curr_idx];
     curr_grid_idx = particle_to_grid_map[curr_idx];
     grid_idx_to_grid_pos(curr_grid_idx, curr_grid_pos);
@@ -71,6 +75,11 @@ __global__ void calculate_pressure(pi_to_pa_map_t particle_idx_to_addr_map) {
     Particle *particle;
 
     particle_idx = blockDim.x * blockIdx.x + threadIdx.x;
+
+    if(particle_idx <= N_PARTICLES) {
+        return;
+    }
+
     particle = particle_idx_to_addr_map[particle_idx];
 
     /* here we use the ideal gas law as the equation of state
@@ -104,6 +113,10 @@ __global__ void calculate_net_force(gri_to_pl_map_t grid_to_particle_list_map,
     int8_t layer_offset;
 
     curr_idx = blockDim.x * blockIdx.x + threadIdx.x;
+
+    if(curr_idx <= N_PARTICLES) {
+        return;
+    }
 
     curr_particle = particle_idx_to_addr_map[curr_idx];
     curr_grid_idx = particle_to_grid_map[curr_idx];

@@ -167,15 +167,20 @@ void host_insert_into_grid(gri_to_pl_map_t grid_to_particle_list_map,
 
 
 __global__ void update_particle_to_grid_map(
-                                pi_to_pa_map_t particle_idx_to_addr_map,
                                 pi_to_gri_map_t last_particle_to_grid_map,
-                                pi_to_gri_map_t curr_particle_to_grid_map) {
+                                pi_to_gri_map_t curr_particle_to_grid_map,
+                                pi_to_pa_map_t particle_idx_to_addr_map) {
     uint32_t particle_idx;
     uint32_t pre_update_grid_idx;
     uint32_t updated_grid_idx;
     Particle *particle;
 
     particle_idx = blockDim.x * blockIdx.x + threadIdx.x;
+
+    if(particle_idx >= N_PARTICLES) {
+        return;
+    }
+
     particle = particle_idx_to_addr_map[particle_idx];
     pre_update_grid_idx = curr_particle_to_grid_map[particle_idx];
     updated_grid_idx = particle_pos_to_grid_idx(particle->position);
@@ -197,8 +202,14 @@ __global__ void perform_removals_from_grid(
     Particle *del_particle;
     Particle *del_prev_particle;
     Particle *del_next_particle;
+    constexpr uint32_t n_grid_spaces = (EXP_SPACE_DIM * EXP_SPACE_DIM * EXP_SPACE_DIM) /
+                                       (H * H * H);
 
     grid_idx = blockDim.x * blockIdx.x + threadIdx.x;
+
+    if(grid_idx <= n_grid_spaces) {
+        return;
+    }
 
     for(uint32_t particle_idx = 0; particle_idx < N_PARTICLES; particle_idx++){
         if((last_particle_to_grid_map[particle_idx] == grid_idx) &&
@@ -235,8 +246,14 @@ __global__ void perform_additions_to_grid(
     uint32_t grid_idx;
     Particle *particle;
     Particle *first_particle_in_grid_slot;
+    constexpr uint32_t n_grid_spaces = (EXP_SPACE_DIM * EXP_SPACE_DIM * EXP_SPACE_DIM) /
+                                       (H * H * H);
 
     grid_idx = blockDim.x * blockIdx.x + threadIdx.x;
+
+    if(grid_idx <= n_grid_spaces) {
+        return;
+    }
 
     for(uint32_t particle_idx = 0; particle_idx < N_PARTICLES; particle_idx++){
         if((last_particle_to_grid_map[particle_idx] != grid_idx) &&

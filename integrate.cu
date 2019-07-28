@@ -3,7 +3,8 @@
 
 #include "integrate.h"
 
-__global__ void euler_integrate(pi_to_pa_map_t particle_idx_to_addr_map){
+__global__ void euler_integrate(pi_to_pa_map_t particle_idx_to_addr_map) {
+
     Particle *particle;
     uint32_t particle_idx;
 
@@ -22,7 +23,33 @@ __global__ void euler_integrate(pi_to_pa_map_t particle_idx_to_addr_map){
     particle->velocity[2] = (particle->force[2] / M_PARTICLE) * DT;
 }
 
+
 __global__ void leapfrog_integrate(pi_to_pa_map_t particle_idx_to_addr_map) {}
 
 
+__global__ void enforce_boundary_conditions(pi_to_pa_map_t particle_idx_to_addr_map) {
+
+    uint32_t particle_idx;
+    Particle *particle;
+    constexpr float max_lim = EXP_SPACE_DIM - H;
+
+    particle_idx = blockDim.x * blockIdx.x + threadIdx.x;
+    particle = particle_idx_to_addr_map[particle_idx];
+
+    /* for each component of position, ensure that each particle cannot
+     * enter the last layer of grid spaces coating the outside of the experiment
+     * space. If this condition is violated, produce an elastic collision between
+     * the particle and the wall
+     * */
+    for(uint8_t ax = 0; ax < 3; ax++) {
+        if(particle->position[ax] > max_lim) {
+            particle->position[ax] = max_lim;
+            particle->velocity[ax] = -particle->velocity[ax];
+        }
+        else if(particle->position[ax] < H) {
+            particle->position[ax] = H;
+            particle->velocity[ax] = -particle->velocity[ax];
+        }
+    }
+}
 

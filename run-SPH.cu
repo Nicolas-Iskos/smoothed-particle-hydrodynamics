@@ -9,6 +9,8 @@
 #include <cassert>
 
 int main() {
+    constexpr uint32_t n_grid_spaces = (EXP_SPACE_DIM * EXP_SPACE_DIM * EXP_SPACE_DIM) /
+                                       (H * H * H);
 
     gri_to_pl_map_t grid_to_particle_list_map = gen_grid_to_particle_list_map();
 
@@ -17,37 +19,70 @@ int main() {
 
     pi_to_pa_map_t particle_idx_to_addr_map = gen_particle_idx_to_addr_map();
 
+    initialize_dam_break(grid_to_particle_list_map, last_particle_to_grid_map,
+                         curr_particle_to_grid_map, particle_idx_to_addr_map);
 
-    printf("initialization\n");
-    initialize_dam_break(grid_to_particle_list_map,
-                         last_particle_to_grid_map,
-                         curr_particle_to_grid_map,
-                         particle_idx_to_addr_map);
-#if 0
-    assert(host_grid_consistency_check(grid_to_particle_list_map));
 
-    printf("deletion\n");
-    delete_particles_test(grid_to_particle_list_map,
-                          curr_particle_to_grid_map,
-                          particle_idx_to_addr_map);
+    for(uint8_t i = 0; i < 1; i++) {
 
-    assert(host_grid_consistency_check(grid_to_particle_list_map));
+        /* perform SPH calculations to update the forces acting on each
+         * particle
+         * */
+        calculate_density<<<N_PARTICLES / PARTICLES_PER_BLOCK,
+                            PARTICLES_PER_BLOCK>>>(grid_to_particle_list_map,
+                                                   curr_particle_to_grid_map,
+                                                   particle_idx_to_addr_map);
 
-    printf("insert\n");
-    insert_particles_test(grid_to_particle_list_map,
-                          curr_particle_to_grid_map,
-                          particle_idx_to_addr_map);
+        calculate_pressure<<<N_PARTICLES / PARTICLES_PER_BLOCK,
+                             PARTICLES_PER_BLOCK>>>(particle_idx_to_addr_map);
 
-    assert(host_grid_consistency_check(grid_to_particle_list_map));
-#endif
-    calculate_density_test(grid_to_particle_list_map,
-                           curr_particle_to_grid_map,
-                           particle_idx_to_addr_map);
+        calculate_net_force<<<N_PARTICLES / PARTICLES_PER_BLOCK,
+                              PARTICLES_PER_BLOCK>>>(grid_to_particle_list_map,
+                                                     curr_particle_to_grid_map,
+                                                     particle_idx_to_addr_map);
+        /* adjust the position and velocity of the particles based on the
+         * recently-computed net force acting on each particle
+         * */
+        euler_integrate<<<N_PARTICLES / PARTICLES_PER_BLOCK,
+                          PARTICLES_PER_BLOCK>>>(particle_idx_to_addr_map);
 
-    calculate_pressure_test(particle_idx_to_addr_map);
+        /* ensure that no particle passes into the outer layer of grid spaces
+         * in the experimental space, or out of the experimental space
+         * entirely
+         * */
+        enforce_boundary_conditions<<<N_PARTICLES / PARTICLES_PER_BLOCK,
+                                      PARTICLES_PER_BLOCK>>>(particle_idx_to_addr_map);
 
-    calculate_force_test(grid_to_particle_list_map,
-                         curr_particle_to_grid_map,
-                         particle_idx_to_addr_map);
+        /* update the particle grid in 3 steps:
+         *
+         * 1. Keep track of what grid spaces the particles were last in, but also
+         *    recompute what their new grid spaces should be and record these
+         *    grid spaces as well
+         *
+         * 2. For each grid space, remove all particles that have left that grid
+         *    space.
+         *
+         * 3. For each grid space, add all particles that have entered that
+         *    grid space.
+         * */
+        update_particle_to_grid_map<<<n_grid_spaces / GRID_SPACES_PER_BLOCK,
+                                      GRID_SPACES_PER_BLOCK>>>(last_particle_to_grid_map,
+                                                               curr_particle_to_grid_map,
+                                                               particle_idx_to_addr_map);
+
+        perform_removals_from_grid<<<n_grid_spaces / GRID_SPACES_PER_BLOCK,
+                                     GRID_SPACES_PER_BLOCK>>>(grid_to_particle_list_map,
+                                                              last_particle_to_grid_map,
+                                                              curr_particle_to_grid_map,
+                                                              particle_idx_to_addr_map);
+
+        perform_additions_to_grid<<<n_grid_spaces / GRID_SPACES_PER_BLOCK,
+                                     GRID_SPACES_PER_BLOCK>>>(grid_to_particle_list_map,
+                                                              last_particle_to_grid_map,
+                                                              curr_particle_to_grid_map,
+                                                              particle_idx_to_addr_map);
+
+
+    }
 }
 

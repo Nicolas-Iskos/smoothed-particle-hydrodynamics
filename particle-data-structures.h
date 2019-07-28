@@ -112,8 +112,8 @@ void host_insert_into_grid(gri_to_pl_map_t grid_to_particle_list_map,
  * and add particles to the corresponding grid slots.
  * */
 __global__ void update_particle_to_grid_map(
-                           pi_to_gri_map_t curr_particle_to_grid_map,
                            pi_to_gri_map_t last_particle_to_grid_map,
+                           pi_to_gri_map_t curr_particle_to_grid_map,
                            pi_to_pa_map_t particle_idx_to_addr_map);
 
 
