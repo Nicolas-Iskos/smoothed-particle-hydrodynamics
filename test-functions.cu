@@ -142,7 +142,7 @@ void calculate_density_test(gri_to_pl_map_t grid_to_particle_list_map,
                             pi_to_gri_map_t curr_particle_to_grid_map,
                             pi_to_pa_map_t particle_idx_to_addr_map) {
 
-    calculate_density<<<(N_PARTICLES/64), 64>>>(grid_to_particle_list_map,
+    calculate_density<<<(N_PARTICLES / 64), 64>>>(grid_to_particle_list_map,
                                                   curr_particle_to_grid_map,
                                                   particle_idx_to_addr_map);
 
@@ -158,4 +158,31 @@ void calculate_density_test(gri_to_pl_map_t grid_to_particle_list_map,
     }
     printf("%d\n",count);
 
+}
+
+
+void calculate_pressure_test(pi_to_pa_map_t particle_idx_to_addr_map) {
+
+    calculate_pressure<<<(N_PARTICLES / 64), 64>>>(particle_idx_to_addr_map);
+    cudaDeviceSynchronize();
+
+    for(uint32_t i = 0; i < N_PARTICLES; i++) {
+        printf("pressure: %f\n", particle_idx_to_addr_map[i]->pressure);
+    }
+}
+
+void calculate_force_test(gri_to_pl_map_t grid_to_particle_list_map,
+                          pi_to_gri_map_t curr_particle_to_grid_map,
+                          pi_to_pa_map_t particle_idx_to_addr_map) {
+
+    calculate_net_force<<<(N_PARTICLES / 64), 64>>>(grid_to_particle_list_map,
+                                                    curr_particle_to_grid_map,
+                                                    particle_idx_to_addr_map);
+
+    cudaDeviceSynchronize();
+
+    for(uint32_t i = 0; i < N_PARTICLES; i++) {
+        Particle *p = particle_idx_to_addr_map[i];
+        printf("x: %f y: %f z: %f\n", p->force[0], p->force[1], p->force[2]);
+    }
 }

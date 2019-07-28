@@ -8,7 +8,7 @@
 
 /* particle parameters */
 #define N_PARTICLES                 512
-#define M_PARTICLE                  0.001
+#define M_PARTICLE                  0.005
 #define R_PARTICLE                  0.01
 
 /* SPH parameters */
@@ -24,10 +24,8 @@
 
 /* physical constants */
 #define G                           9.8
-#define R                           8.134
-#define M                           0.018
-#define T                           300
 #define C                           1500
+#define H_SPEC                      4186
 
 #endif
 

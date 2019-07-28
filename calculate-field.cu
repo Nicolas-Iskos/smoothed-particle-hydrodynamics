@@ -22,11 +22,12 @@ __global__ void calculate_density(gri_to_pl_map_t grid_to_particle_list_map,
 
     float total_density;
 
-    uint8_t col_offset;
-    uint8_t row_offset;
-    uint8_t layer_offset;
+    int8_t col_offset;
+    int8_t row_offset;
+    int8_t layer_offset;
 
     curr_idx = blockDim.x * blockIdx.x + threadIdx.x;
+
     curr_particle = particle_idx_to_addr_map[curr_idx];
     curr_grid_idx = particle_to_grid_map[curr_idx];
     grid_idx_to_grid_pos(curr_grid_idx, curr_grid_pos);
@@ -45,6 +46,7 @@ __global__ void calculate_density(gri_to_pl_map_t grid_to_particle_list_map,
         acc_grid_pos[2] = curr_grid_pos[2] + layer_offset;
         acc_grid_idx = grid_pos_to_grid_idx(acc_grid_pos);
         acc_grid_list = grid_to_particle_list_map[acc_grid_idx];
+
 
         for(acc_particle = acc_grid_list;
             acc_particle != NULL;
@@ -74,13 +76,13 @@ __global__ void calculate_pressure(pi_to_pa_map_t particle_idx_to_addr_map) {
     /* here we use the ideal gas law as the equation of state
      * relating pressure to density and temperature
      * */
-    particle->pressure = particle->density * (R / M) * T;
+    particle->pressure = (GAMMA - 1) * H_SPEC * particle->density;
 }
 
 
-__global__ void calculate_force(gri_to_pl_map_t grid_to_particle_list_map,
-                                pi_to_gri_map_t particle_to_grid_map,
-                                pi_to_pa_map_t particle_idx_to_addr_map) {
+__global__ void calculate_net_force(gri_to_pl_map_t grid_to_particle_list_map,
+                                    pi_to_gri_map_t particle_to_grid_map,
+                                    pi_to_pa_map_t particle_idx_to_addr_map) {
 
     Particle *curr_particle;
     uint32_t curr_idx;
@@ -97,9 +99,9 @@ __global__ void calculate_force(gri_to_pl_map_t grid_to_particle_list_map,
     float mag_r_curr_acc;
     float total_force[3];
 
-    uint8_t col_offset;
-    uint8_t row_offset;
-    uint8_t layer_offset;
+    int8_t col_offset;
+    int8_t row_offset;
+    int8_t layer_offset;
 
     curr_idx = blockDim.x * blockIdx.x + threadIdx.x;
 
@@ -139,9 +141,10 @@ __global__ void calculate_force(gri_to_pl_map_t grid_to_particle_list_map,
                                        r_curr_acc_norm, mag_r_curr_acc,
                                        total_force);
 
-            add_f_contr_from_gravity(total_force);
         }
     }
+
+    add_f_contr_from_gravity(total_force);
 
     for(uint8_t ax = 0; ax <3; ax++) {
         curr_particle->force[ax] = total_force[ax];
@@ -151,7 +154,7 @@ __global__ void calculate_force(gri_to_pl_map_t grid_to_particle_list_map,
 
 __device__ void add_f_contr_from_pressure(Particle *curr_particle,
                                           Particle *acc_particle,
-                                          float *norm_r_curr_acc,
+                                          float *r_curr_acc_norm,
                                           float *total_force) {
 
     float curr_rho_pow2;
@@ -168,7 +171,7 @@ __device__ void add_f_contr_from_pressure(Particle *curr_particle,
     for(uint8_t ax = 0; ax < 3; ax++) {
 
         total_force[ax] -=
-            norm_r_curr_acc[ax] *
+            r_curr_acc_norm[ax] *
             m_particle_pow2 *
             (curr_p / curr_rho_pow2 + acc_p / acc_rho_pow2) *
             cubic_spline_kernel(curr_particle->position,
@@ -179,7 +182,7 @@ __device__ void add_f_contr_from_pressure(Particle *curr_particle,
 
 __device__ void add_f_contr_from_viscosity(Particle *curr_particle,
                                            Particle *acc_particle,
-                                           float *norm_r_curr_acc,
+                                           float *r_curr_acc_norm,
                                            float mag_r_curr_acc,
                                            float *total_force) {
 
@@ -223,7 +226,7 @@ __device__ void add_f_contr_from_viscosity(Particle *curr_particle,
 
     for(uint8_t ax = 0; ax < 3; ax++) {
         total_force[ax] =
-        norm_r_curr_acc[ax] *
+        r_curr_acc_norm[ax] *
         (-A_SPH * avg_c_curr_acc * grad_v_curr_acc + B_SPH * grad_v_curr_acc_pow2) /
         avg_p_curr_acc;
     }
@@ -238,12 +241,13 @@ __device__ void add_f_contr_from_gravity(float *total_force) {
 __device__ void get_norm_3vector(float *vec, float *norm_vec) {
 
     float mag;
+    constexpr float protection_term = EPSILON * H * H;
 
     mag = get_mag_3vector(vec);
 
-    norm_vec[0] = vec[0] / mag;
-    norm_vec[1] = vec[1] / mag;
-    norm_vec[2] = vec[2] / mag;
+    norm_vec[0] = vec[0] / (mag + protection_term);
+    norm_vec[1] = vec[1] / (mag + protection_term);
+    norm_vec[2] = vec[2] / (mag + protection_term);
 }
 
 
@@ -257,8 +261,6 @@ __device__ float get_mag_3vector(float *vec) {
     x_val_pow2 = pow(vec[0], 2);
     y_val_pow2 = pow(vec[1], 2);
     z_val_pow2 = pow(vec[2], 2);
-    mag = sqrt(x_val_pow2 + y_val_pow2 + z_val_pow2);
-
     mag = sqrt(x_val_pow2 + y_val_pow2 + z_val_pow2);
 
     return mag;

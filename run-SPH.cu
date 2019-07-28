@@ -40,12 +40,14 @@ int main() {
 
     assert(host_grid_consistency_check(grid_to_particle_list_map));
 #endif
-
     calculate_density_test(grid_to_particle_list_map,
                            curr_particle_to_grid_map,
                            particle_idx_to_addr_map);
 
+    calculate_pressure_test(particle_idx_to_addr_map);
 
-
+    calculate_force_test(grid_to_particle_list_map,
+                         curr_particle_to_grid_map,
+                         particle_idx_to_addr_map);
 }
 
