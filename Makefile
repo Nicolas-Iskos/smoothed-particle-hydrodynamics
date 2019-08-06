@@ -2,6 +2,8 @@ CC = nvcc
 
 CFLAGS = -rdc=true -std c++14
 
+LDFLAGS += -lGL -lGLU -lglut
+
 OBJECTS = run-SPH.o particle-data-structures.o integrate.o calculate-field.o \
 		  smoothing-kernels.o test-functions.o
 
@@ -10,11 +12,11 @@ COM-DEPS = particle-data-structures.cu particle-data-structures.h \
 
 
 
-SPH: $(OBJECTS)
-	$(CC) $(OBJECTS) -o SPH
+sph: $(OBJECTS)
+	$(CC) $(OBJECTS) $(LDFLAGS) -o sph
 
 %.o: %.cu
-	$(CC) $(CFLAGS) -c $<
+	$(CC) $(CFLAGS) $(LDFLAGS) -c $<
 
 
 
@@ -31,4 +33,4 @@ smoothing-kernels.o: smoothing-kernels.cu smoothing-kernels.h $(COM-DEPS)
 test-functions.o: test-functions.cu test-functions.h $(COM-DEPS)
 
 clean:
-	rm *.o SPH
+	rm *.o sph

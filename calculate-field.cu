@@ -76,7 +76,7 @@ __global__ void calculate_pressure(pi_to_pa_map_t particle_idx_to_addr_map) {
 
     particle_idx = blockDim.x * blockIdx.x + threadIdx.x;
 
-    if(particle_idx <= N_PARTICLES) {
+    if(particle_idx >= N_PARTICLES) {
         return;
     }
 
@@ -114,7 +114,7 @@ __global__ void calculate_net_force(gri_to_pl_map_t grid_to_particle_list_map,
 
     curr_idx = blockDim.x * blockIdx.x + threadIdx.x;
 
-    if(curr_idx <= N_PARTICLES) {
+    if(curr_idx >= N_PARTICLES) {
         return;
     }
 
@@ -175,6 +175,7 @@ __device__ void add_f_contr_from_pressure(Particle *curr_particle,
     float acc_rho_pow2;
     float acc_p;
     constexpr float m_particle_pow2 = M_PARTICLE * M_PARTICLE;
+    constexpr float protection_term = H * H * EPSILON;
 
     curr_rho_pow2 = pow(curr_particle->density, 2);
     curr_p = curr_particle->pressure;
@@ -186,7 +187,8 @@ __device__ void add_f_contr_from_pressure(Particle *curr_particle,
         total_force[ax] -=
             r_curr_acc_norm[ax] *
             m_particle_pow2 *
-            (curr_p / curr_rho_pow2 + acc_p / acc_rho_pow2) *
+            (curr_p / (curr_rho_pow2 + protection_term) +
+            acc_p / (acc_rho_pow2 + protection_term)) *
             cubic_spline_kernel(curr_particle->position,
                                 acc_particle->position);
     }
@@ -233,8 +235,10 @@ __device__ void add_f_contr_from_viscosity(Particle *curr_particle,
 
     avg_p_curr_acc = (curr_particle->density + acc_particle->density) / 2;
 
-    c_curr = sqrt(GAMMA * curr_particle->pressure / curr_particle->density);
-    c_acc= sqrt(GAMMA * acc_particle->pressure / acc_particle->density);
+    c_curr = sqrt(GAMMA * curr_particle->pressure /
+             (curr_particle->density + protection_term));
+    c_acc = sqrt(GAMMA * acc_particle->pressure /
+            (acc_particle->density + protection_term));
     avg_c_curr_acc = (c_curr + c_acc) / 2;
 
     for(uint8_t ax = 0; ax < 3; ax++) {
@@ -254,7 +258,7 @@ __device__ void add_f_contr_from_gravity(float *total_force) {
 __device__ void get_norm_3vector(float *vec, float *norm_vec) {
 
     float mag;
-    constexpr float protection_term = EPSILON * H * H;
+    constexpr float protection_term = H * H * EPSILON;
 
     mag = get_mag_3vector(vec);
 
