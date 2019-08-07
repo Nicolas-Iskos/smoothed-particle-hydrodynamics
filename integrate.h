@@ -1,5 +1,0 @@
-__global__ void euler_integrate(pi_to_pa_map_t particle_idx_to_addr_map);
-
-__global__ void leapfrog_integrate(pi_to_pa_map_t particle_idx_to_addr_map);
-
-__global__ void enforce_boundary_conditions(pi_to_pa_map_t particle_idx_to_addr_map);
