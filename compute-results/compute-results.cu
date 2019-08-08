@@ -3,12 +3,28 @@
 #include "particle-data-structures.h"
 #include "calculate-field.h"
 #include "integrate.h"
-#include <GL/gl.h>
-#include <GL/glut.h>
+#include <fstream>
+#include <sstream>
+#include <iostream>
 
-int main() {
+int main(int argc, char **argv) {
 
-    /* initialize particle data structures */
+    uint16_t n_seconds_run_time;
+    uint16_t n_iterations;
+    Particle *particle;
+
+
+
+
+    if(argc != 2) {
+        std::cout << "Incorrect number of input arguments" << std::endl;
+        return -1;
+    }
+
+    /* initialize simulation results output file */
+    std::ofstream output("simulation-results.csv");
+
+    /* initialize particle data structures with dam break configuration */
     constexpr uint32_t n_grid_spaces = (EXP_SPACE_DIM * EXP_SPACE_DIM * EXP_SPACE_DIM) /
                                        (H * H * H);
 
@@ -24,10 +40,13 @@ int main() {
 
 
 
+    /* Determine how many iterations the simulation should complete */
+    n_seconds_run_time = std::stoi(argv[1]);
+    n_iterations = (uint16_t)(n_seconds_run_time / DT);
 
-
-    for(uint8_t i = 0; i < 50; i++) {
-
+    /* perform the simulation */
+    for(uint8_t i = 0; i < n_iterations; i++) {
+        /* compute the forces acting on each particle using SPH techniques */
         calculate_density<<<N_PARTICLES / PARTICLES_PER_BLOCK,
                             PARTICLES_PER_BLOCK>>>(grid_to_particle_list_map,
                                                    curr_particle_to_grid_map,
@@ -44,7 +63,9 @@ int main() {
                                                      particle_idx_to_addr_map);
         cudaDeviceSynchronize();
 
-        /* adjust the position and velocity of the particles based on the
+
+
+        /* integrate the position and velocity of the particles based on the
          * recently-computed net force acting on each particle
          * */
         euler_integrate<<<N_PARTICLES / PARTICLES_PER_BLOCK,
@@ -58,6 +79,8 @@ int main() {
         enforce_boundary_conditions<<<N_PARTICLES / PARTICLES_PER_BLOCK,
                                       PARTICLES_PER_BLOCK>>>(particle_idx_to_addr_map);
         cudaDeviceSynchronize();
+
+
 
         /* update the particle grid in 3 steps:
          *
@@ -91,5 +114,31 @@ int main() {
                                                               particle_idx_to_addr_map);
         cudaDeviceSynchronize();
 
+
+
+        /* this is a string stream holding the position of every particle as
+         * a series of tuples laid out in a row
+         * */
+        std::stringstream particle_positions_stream;
+
+        /* fill the newly-created stream with the position of each particle */
+        for(uint32_t particleIdx = 0; particleIdx < N_PARTICLES; particleIdx++) {
+            particle = particle_idx_to_addr_map[i];
+            std::stringstream position_stream;
+
+            position_stream << round(particle->position[0] * 1e3) / 1e3;
+            position_stream << " ";
+            position_stream << round(particle->position[1] * 1e3) / 1e3;
+            position_stream << " ";
+            position_stream << round(particle->position[2] * 1e3) / 1e3;
+            position_stream << "    ";
+
+            particle_positions_stream << position_stream.str();
+        }
+
+        /* add the stream as a line of the output file */
+        output << particle_positions_stream.str() << std::endl;
     }
+
+    return 0;
 }

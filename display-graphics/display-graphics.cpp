@@ -1,7 +1,12 @@
+#include "../simulation-parameters.h"
+
 #include <GL/gl.h>
 #include <GL/glut.h>
+#include <fstream>
+#include <iostream>
+#include <sstream>
 
-#include "../simulation-parameters.h"
+
 
 void InitializeGraphics(int *argc_ptr, char **argv) {
     glutInit(argc_ptr, argv);
@@ -13,49 +18,72 @@ void InitializeGraphics(int *argc_ptr, char **argv) {
     glPointSize((2 * R_PARTICLE / EXP_SPACE_DIM) * WINDOW_SIZE);
 }
 
-void renderScene() {
 
+
+/* put every particle on the canvas */
+void renderScene(std::ifstream &simulation_results) {
+
+    std::string particle_positions;
+    float exp_pos_x;
+    float exp_pos_y;
+    float exp_pos_z;
     float gl_pos_x;
     float gl_pos_y;
     float gl_pos_z;
 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+
+    /* read a single line containing the positions of every particle
+     *
+     * As an example, for Particles p1 and p2 evolving over two
+     * timesteps, the simulation_results stream is formatted as:
+     *
+     * p1_pos_x p1_pos_y p1_pos_z    p2_pos_x p2_pos_y p2_pos_z
+     * p1_pos_x p1_pos_y p1_pos_z    p2_pos_x p2_pos_y p2_pos_z
+     *
+     * where each row corresponds to a different timestep
+     *
+     * */
+    std::getline(simulation_results, particle_positions);
+
+    /* tokenize the line into each particle and its position components */
+    std::stringstream position_stream(particle_positions);
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glBegin(GL_POINTS);
 
-    for(uint32_t i = 0; i < N_PARTICLES; i++) {
-#if 0
-        particle = particle_idx_to_addr_map[i];
+    /* render each particle */
+    while(!position_stream.eof()) {
 
-        /* the x coordinate in the graphics window is analogous
-         * to the y coordinate in a standard orientation rhs system,
-         * as is used within the SPH calculations
-         * */
-        gl_pos_x = 2 * (particle->position[1] / EXP_SPACE_DIM) - 1;
+        position_stream >> exp_pos_x;
+        position_stream >> exp_pos_y;
+        position_stream >> exp_pos_z;
 
-        /* the y coordinate in the graphics window is analogous
-         * to the z coordinate in a standard orientation rhs system,
-         * as is used within the SPH calculations
+        /* we need to perform these conversions because
+         * although OpenGL uses a right handed coordinate system,
+         * it is rotated in a silly orientation, with z pointing
+         * out of the screen, x pointing to the right and y
+         * pointing up.
          * */
-        gl_pos_y = 2 * (particle->position[2] / EXP_SPACE_DIM) - 1;
-
-        /* the z coordinate in the graphics windowis analogous
-         * to the x coordinate in a standard orientation rhs system,
-         * as is used within the SPH calculations
-         * */
-        gl_pos_z = 2 * (particle->position[0] / EXP_SPACE_DIM) - 1;
+        gl_pos_x = 2 * (exp_pos_y / EXP_SPACE_DIM) - 1;
+        gl_pos_y = 2 * (exp_pos_z / EXP_SPACE_DIM) - 1;
+        gl_pos_z = 2 * (exp_pos_x / EXP_SPACE_DIM) - 1;
 
         glVertex3f(gl_pos_x, gl_pos_y, gl_pos_z);
-#endif
     }
 
     glEnd();
-
     glutSwapBuffers();
 }
+
+
+
 
 void updateParticles() {
 
 }
+
+
+
 
 int main() {}
