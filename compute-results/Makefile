@@ -31,4 +31,4 @@ smoothing-kernels.o: smoothing-kernels.cu smoothing-kernels.h $(COM-DEPS)
 
 
 clean:
-	rm *.o compute simulation-results.csv
+	rm *.o compute

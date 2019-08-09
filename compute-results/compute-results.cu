@@ -9,20 +9,29 @@
 
 int main(int argc, char **argv) {
 
-    uint16_t n_seconds_run_time;
+    float n_seconds_run_time;
     uint16_t n_iterations;
+    std::string saveDirectory;
     Particle *particle;
 
 
 
 
-    if(argc != 2) {
+    if(argc != 3) {
         std::cout << "Incorrect number of input arguments" << std::endl;
         return -1;
     }
 
+    /* Determine how many iterations the simulation should complete */
+    n_seconds_run_time = std::stof(argv[1]);
+    n_iterations = (uint16_t)(n_seconds_run_time / DT);
+
+    saveDirectory = argv[2];
     /* initialize simulation results output file */
-    std::ofstream output("simulation-results.csv");
+    std::ofstream output(saveDirectory.append("/simulation-results.csv"),
+                          std::ios::trunc);
+
+
 
     /* initialize particle data structures with dam break configuration */
     constexpr uint32_t n_grid_spaces = (EXP_SPACE_DIM * EXP_SPACE_DIM * EXP_SPACE_DIM) /
@@ -40,12 +49,9 @@ int main(int argc, char **argv) {
 
 
 
-    /* Determine how many iterations the simulation should complete */
-    n_seconds_run_time = std::stoi(argv[1]);
-    n_iterations = (uint16_t)(n_seconds_run_time / DT);
 
     /* perform the simulation */
-    for(uint8_t i = 0; i < n_iterations; i++) {
+    for(uint16_t i = 0; i < n_iterations; i++) {
         /* compute the forces acting on each particle using SPH techniques */
         calculate_density<<<N_PARTICLES / PARTICLES_PER_BLOCK,
                             PARTICLES_PER_BLOCK>>>(grid_to_particle_list_map,
@@ -120,17 +126,16 @@ int main(int argc, char **argv) {
          * a series of tuples laid out in a row
          * */
         std::stringstream particle_positions_stream;
-
         /* fill the newly-created stream with the position of each particle */
-        for(uint32_t particleIdx = 0; particleIdx < N_PARTICLES; particleIdx++) {
-            particle = particle_idx_to_addr_map[i];
+        for(uint32_t particle_idx = 0; particle_idx < N_PARTICLES; particle_idx++) {
+            particle = particle_idx_to_addr_map[particle_idx];
             std::stringstream position_stream;
 
-            position_stream << round(particle->position[0] * 1e3) / 1e3;
+            position_stream << round(particle->position[0] * 1e4) / 1e4;
             position_stream << " ";
-            position_stream << round(particle->position[1] * 1e3) / 1e3;
+            position_stream << round(particle->position[1] * 1e4) / 1e4;
             position_stream << " ";
-            position_stream << round(particle->position[2] * 1e3) / 1e3;
+            position_stream << round(particle->position[2] * 1e4) / 1e4;
             position_stream << "    ";
 
             particle_positions_stream << position_stream.str();
@@ -139,6 +144,5 @@ int main(int argc, char **argv) {
         /* add the stream as a line of the output file */
         output << particle_positions_stream.str() << std::endl;
     }
-
     return 0;
 }

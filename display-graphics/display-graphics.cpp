@@ -5,23 +5,28 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <unistd.h>
 
 
 
-void InitializeGraphics(int *argc_ptr, char **argv) {
-    glutInit(argc_ptr, argv);
-    glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
-    glutInitWindowPosition(300, 300);
-    glutInitWindowSize(WINDOW_SIZE, WINDOW_SIZE);
-    glutCreateWindow("CUDA-SPH simulation");
+/* file containing the positions of each particle and how
+ * they evolve with time
+ * */
+std::ifstream simulation_results("simulation-results.csv");
 
-    glPointSize((2 * R_PARTICLE / EXP_SPACE_DIM) * WINDOW_SIZE);
+
+
+void delayBetweenFrames()
+{
+    /* convert from s to ms */
+    usleep(DT * 1e6);
+    glutPostRedisplay();
 }
 
 
 
 /* put every particle on the canvas */
-void renderScene(std::ifstream &simulation_results) {
+void renderFrame() {
 
     std::string particle_positions;
     float exp_pos_x;
@@ -78,12 +83,17 @@ void renderScene(std::ifstream &simulation_results) {
 
 
 
+int main(int argc, char **argv) {
 
-void updateParticles() {
+    glutInit(&argc, argv);
+    glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
+    glutInitWindowPosition(300, 300);
+    glutInitWindowSize(WINDOW_SIZE, WINDOW_SIZE);
+    glutCreateWindow("CUDA-SPH simulation");
+
+    glPointSize((2 * R_PARTICLE / EXP_SPACE_DIM) * WINDOW_SIZE);
+
+    glutIdleFunc(delayBetweenFrames);
+    glutDisplayFunc(renderFrame);
 
 }
-
-
-
-
-int main() {}
