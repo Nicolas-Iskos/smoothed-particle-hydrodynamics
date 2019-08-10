@@ -96,4 +96,5 @@ int main(int argc, char **argv) {
     glutIdleFunc(delayBetweenFrames);
     glutDisplayFunc(renderFrame);
 
+    glutMainLoop();
 }

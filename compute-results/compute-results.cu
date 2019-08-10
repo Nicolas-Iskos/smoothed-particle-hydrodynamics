@@ -11,7 +11,8 @@ int main(int argc, char **argv) {
 
     float n_seconds_run_time;
     uint16_t n_iterations;
-    std::string saveDirectory;
+    std::string display_graphics_location;
+    std::string full_save_path;
     Particle *particle;
 
 
@@ -26,10 +27,11 @@ int main(int argc, char **argv) {
     n_seconds_run_time = std::stof(argv[1]);
     n_iterations = (uint16_t)(n_seconds_run_time / DT);
 
-    saveDirectory = argv[2];
+    display_graphics_location = argv[2];
+    full_save_path =
+        display_graphics_location.append("/display-graphics/simulation-results.csv");
     /* initialize simulation results output file */
-    std::ofstream output(saveDirectory.append("/simulation-results.csv"),
-                          std::ios::trunc);
+    std::ofstream output(full_save_path, std::ios::trunc);
 
 
 
