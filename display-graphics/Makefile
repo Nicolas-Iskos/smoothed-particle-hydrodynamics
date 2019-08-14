@@ -1,11 +1,13 @@
 CC = g++
 
-LDFLAGS += -lGL -lGLU -lglut
+LDFLAGS += -lglut -lGL -lX11
+
+COWFLAGS += -framework OpenGL -framework GLUT
 
 OBJECTS = display-graphics.o
 
 display: $(OBJECTS)
-	$(CC) $(OBJECTS) $(LDFLAGS) -o display
+	$(CC) $(OBJECTS) $(COWFLAGS) -o display
 
 %.o: %.cpp
 	$(CC) -c $<

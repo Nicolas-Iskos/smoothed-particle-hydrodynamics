@@ -1,12 +1,16 @@
 #include "../simulation-parameters.h"
 
+#if __APPLE__
+#include <GLUT/glut.h>
+#else
 #include <GL/gl.h>
 #include <GL/glut.h>
+#endif
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <unistd.h>
-
+#include <cmath>
 
 
 /* file containing the positions of each particle and how
@@ -55,6 +59,27 @@ void renderFrame() {
     std::stringstream position_stream(particle_positions);
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    
+    glMatrixMode(GL_MODELVIEW);
+  
+    glLoadIdentity();
+
+    glRotatef(-10, 1, 0, 0);
+    glRotatef(-20, 0, 1, 0);
+    glTranslatef(0,0.2f,0);
+
+
+
+
+
+    glBegin(GL_QUADS);
+    glColor3f(0.9f, 0.9f, 0.9f);
+    glVertex3f(-0.8, H - 1, 0.8);
+    glVertex3f(0.8, H - 1, 0.8);
+    glVertex3f(0.8, H - 1, -0.8);
+    glVertex3f(-0.8, H - 1, -0.8);
+    glEnd();
+
     glBegin(GL_POINTS);
 
     /* render each particle */
@@ -73,10 +98,15 @@ void renderFrame() {
         gl_pos_x = 2 * (exp_pos_y / EXP_SPACE_DIM) - 1;
         gl_pos_y = 2 * (exp_pos_z / EXP_SPACE_DIM) - 1;
         gl_pos_z = 2 * (exp_pos_x / EXP_SPACE_DIM) - 1;
+	/*
+	glColor4f(0,0,0,1);
+        glPointSize(2 * R_PARTICLE / EXP_SPACE_DIM * WINDOW_SIZE);
+	glVertex3f(gl_pos_x, gl_pos_y, gl_pos_z); */
 
+        glColor4f(0.0f, 0.2f, 0.9f, 0.85f);
         glVertex3f(gl_pos_x, gl_pos_y, gl_pos_z);
+  
     }
-
     glEnd();
     glutSwapBuffers();
 }
@@ -91,10 +121,12 @@ int main(int argc, char **argv) {
     glutInitWindowSize(WINDOW_SIZE, WINDOW_SIZE);
     glutCreateWindow("CUDA-SPH simulation");
 
-    glPointSize((2 * R_PARTICLE / EXP_SPACE_DIM) * WINDOW_SIZE);
-
     glutIdleFunc(delayBetweenFrames);
     glutDisplayFunc(renderFrame);
-
+    
+    glClearColor(0.8f,0.8f,0.8f,0.8f);
+    glEnable(GL_POINT_SMOOTH);
+    glPointSize(2 * R_PARTICLE / EXP_SPACE_DIM * WINDOW_SIZE);
+    
     glutMainLoop();
 }
