@@ -12,7 +12,7 @@
 
 /* particle parameters */
 #define N_PARTICLES                 512
-#define M_PARTICLE                  0.03
+#define M_PARTICLE                  0.02
 #define R_PARTICLE                  0.01
 
 /* SPH parameters */

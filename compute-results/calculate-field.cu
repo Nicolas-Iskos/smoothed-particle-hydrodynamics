@@ -155,7 +155,7 @@ __global__ void calculate_net_force(gri_to_pl_map_t grid_to_particle_list_map,
                                        r_curr_acc_norm, mag_r_curr_acc,
                                        total_force);
 
-        }
+            }
     }
 
     add_f_contr_from_gravity(total_force);
@@ -216,6 +216,7 @@ __device__ void add_f_contr_from_viscosity(Particle *curr_particle,
     constexpr float protection_term = EPSILON * H * H;
 
     mag_r_curr_acc_pow2 = pow(mag_r_curr_acc, 2);
+    v_curr_acc_dot_r_curr_acc = 0;
 
     for(uint8_t ax = 0; ax < 3; ax++) {
         v_curr_acc[ax] = curr_particle->velocity[ax] - acc_particle->velocity[ax];
@@ -243,10 +244,10 @@ __device__ void add_f_contr_from_viscosity(Particle *curr_particle,
     avg_c_curr_acc = (c_curr + c_acc) / 2;
 
     for(uint8_t ax = 0; ax < 3; ax++) {
-        total_force[ax] =
+        total_force[ax] -=
         r_curr_acc_norm[ax] *
         (-A_SPH * avg_c_curr_acc * grad_v_curr_acc + B_SPH * grad_v_curr_acc_pow2) /
-        avg_p_curr_acc;
+        (avg_p_curr_acc + protection_term);
     }
 }
 
