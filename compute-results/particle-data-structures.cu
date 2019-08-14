@@ -80,7 +80,7 @@ void initialize_dam_break(gri_to_pl_map_t grid_to_particle_list_map,
 
     init_particle_pos[0] = space_center[0] + cubic_block_rad - R_PARTICLE;
     init_particle_pos[1] = space_center[1] - cubic_block_rad + R_PARTICLE;
-    init_particle_pos[2] = space_center[2] + cubic_block_rad - R_PARTICLE;
+    init_particle_pos[2] = space_center[2] + cubic_block_rad - R_PARTICLE - 0.3;
 
     /*
      * Arrange each particle into its correct grid slot for the
@@ -131,6 +131,7 @@ void initialize_dam_break(gri_to_pl_map_t grid_to_particle_list_map,
 
         /* record the grid index of each particle */
         grid_idx = particle_pos_to_grid_idx(new_particle->position);
+        last_particle_to_grid_map[particle_idx] = grid_idx;
         curr_particle_to_grid_map[particle_idx] = grid_idx;
 
         /*
@@ -208,7 +209,7 @@ __global__ void perform_removals_from_grid(
 
     grid_idx = blockDim.x * blockIdx.x + threadIdx.x;
 
-    if(grid_idx <= n_grid_spaces) {
+    if(grid_idx >= n_grid_spaces) {
         return;
     }
 
@@ -219,6 +220,9 @@ __global__ void perform_removals_from_grid(
             del_particle = particle_idx_to_addr_map[particle_idx];
             del_prev_particle = del_particle->prev_particle;
             del_next_particle = del_particle->next_particle;
+
+            del_particle->next_particle = NULL;
+            del_particle->prev_particle = NULL;
 
             if(del_prev_particle == NULL && del_next_particle == NULL) {
                 grid_to_particle_list_map[grid_idx] = NULL;
@@ -252,7 +256,7 @@ __global__ void perform_additions_to_grid(
 
     grid_idx = blockDim.x * blockIdx.x + threadIdx.x;
 
-    if(grid_idx <= n_grid_spaces) {
+    if(grid_idx >= n_grid_spaces) {
         return;
     }
 

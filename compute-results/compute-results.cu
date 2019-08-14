@@ -11,7 +11,7 @@ int main(int argc, char **argv) {
 
     float n_seconds_run_time;
     uint16_t n_iterations;
-    std::string display_graphics_location;
+    std::string save_path;
     std::string full_save_path;
     Particle *particle;
 
@@ -27,9 +27,8 @@ int main(int argc, char **argv) {
     n_seconds_run_time = std::stof(argv[1]);
     n_iterations = (uint16_t)(n_seconds_run_time / DT);
 
-    display_graphics_location = argv[2];
-    full_save_path =
-        display_graphics_location.append("/display-graphics/simulation-results.csv");
+    save_path = argv[2];
+    full_save_path = save_path.append("/simulation-results.csv");
     /* initialize simulation results output file */
     std::ofstream output(full_save_path, std::ios::trunc);
 
@@ -107,7 +106,14 @@ int main(int argc, char **argv) {
                                                                curr_particle_to_grid_map,
                                                                particle_idx_to_addr_map);
         cudaDeviceSynchronize();
-
+/*
+        for(int i = 0; i < N_PARTICLES; i++)
+        {
+            std::cout << last_particle_to_grid_map[i] << " " <<
+                         curr_particle_to_grid_map[i] << std::endl;
+        }
+        std::cout << std::endl;
+*/
         perform_removals_from_grid<<<n_grid_spaces / GRID_SPACES_PER_BLOCK,
                                      GRID_SPACES_PER_BLOCK>>>(grid_to_particle_list_map,
                                                               last_particle_to_grid_map,
@@ -121,9 +127,28 @@ int main(int argc, char **argv) {
                                                               curr_particle_to_grid_map,
                                                               particle_idx_to_addr_map);
         cudaDeviceSynchronize();
+/*
+        int count = 0;
+        int n;
+        for(int i = 0; i < n_grid_spaces; i++)
+        {
+            n = 0;
+            for(Particle *j = grid_to_particle_list_map[i]; j != NULL; j = j->next_particle)
+            {
+                n++;
+                count++;
+            }
+            std::cout << i << ":" << n << std::endl;
+        }
 
+        std::cout << std::endl;
 
-
+        if(count != N_PARTICLES)
+        {
+            std::cout << "cow" << std::endl;
+            return 0;
+        }
+*/
         /* this is a string stream holding the position of every particle as
          * a series of tuples laid out in a row
          * */

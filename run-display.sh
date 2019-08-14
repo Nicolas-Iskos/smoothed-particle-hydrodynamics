@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # set thie variable to the file path of your display-graphics folder
-displayGraphicsPath="/export/home/phys/nki/private/smoothed-particle-hydrodynamics"
+savePath="/export/home/phys/nki/private/smoothed-particle-hydrodynamics/display-graphics"
 
-./compute-results/compute "$1" "$displayGraphicsPath"
+./compute-results/compute "$1" "$savePath"
 ./display-graphics/display
