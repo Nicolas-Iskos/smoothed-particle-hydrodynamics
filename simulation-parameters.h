@@ -25,8 +25,13 @@
 
 /* experiment evolution parameters */
 #define EXP_SPACE_DIM               1
+<<<<<<< HEAD
 #define DT                          0.003
 #define DAMPING_FACTOR              0.6
+=======
+#define DT                          0.004
+#define DAMPING_FACTOR              0.5
+>>>>>>> d22161a10e08b64dd3ae3d9757ba799201783185
 
 /* physical constants */
 #define G                           9.8
