@@ -11,16 +11,16 @@
 #define GRID_SPACES_PER_BLOCK       64
 
 /* particle parameters */
-#define N_PARTICLES                 512
+#define N_PARTICLES                 4096
 #define M_PARTICLE                  0.02
-#define R_PARTICLE                  0.01
+#define R_PARTICLE                  0.005
 
 /* SPH parameters */
-#define H                           0.125
+#define H                           0.0625
 #define SL                          0.0625
-#define EPSILON                     0.001
+#define EPSILON                     0.04
 #define A_SPH                       2
-#define B_SPH                       1
+#define B_SPH                       0.5
 #define GAMMA                       1.330
 
 /* experiment evolution parameters */
@@ -35,5 +35,6 @@
 
 /* graphics parameters */
 #define WINDOW_SIZE                 600
+#define OVERLAP_FACTOR              1.5
 #endif
 

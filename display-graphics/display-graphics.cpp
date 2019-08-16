@@ -155,7 +155,8 @@ int main(int argc, char **argv) {
     glLightfv(GL_LIGHT0, GL_POSITION, qaLightPosition);
 
     glEnable(GL_POINT_SMOOTH);
-    glPointSize(2 * R_PARTICLE / EXP_SPACE_DIM * WINDOW_SIZE);
+    glPointSize(2 * R_PARTICLE * OVERLAP_FACTOR /
+                EXP_SPACE_DIM * WINDOW_SIZE);
 
 
     sleep(1);
