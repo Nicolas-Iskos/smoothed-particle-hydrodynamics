@@ -122,7 +122,18 @@ void renderFrame() {
     glutSwapBuffers();
 }
 
+void handle_key_press(unsigned char key, int xmouse, int ymouse) {
 
+    switch (key) {
+        case 'e':
+            exit(0);
+            break;
+        case 'r':
+            simulation_results.clear();
+            simulation_results.seekg(0, std::ios::beg);
+            break;
+    }
+}
 
 int main(int argc, char **argv) {
 
@@ -134,6 +145,7 @@ int main(int argc, char **argv) {
 
     glutIdleFunc(delayBetweenFrames);
     glutDisplayFunc(renderFrame);
+    glutKeyboardFunc(handle_key_press);
 
     glClearColor(0.7 ,0.7 ,0.7 ,0.7);
     glMatrixMode(GL_PROJECTION);
@@ -158,8 +170,6 @@ int main(int argc, char **argv) {
     glPointSize(2 * R_PARTICLE * OVERLAP_FACTOR /
                 EXP_SPACE_DIM * WINDOW_SIZE);
 
-
-    sleep(1);
 
     glutMainLoop();
 }
