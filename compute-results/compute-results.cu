@@ -7,6 +7,8 @@
 #include <sstream>
 #include <iostream>
 
+#include <cmath>
+
 int main(int argc, char **argv) {
 
     float n_seconds_run_time;
@@ -53,6 +55,7 @@ int main(int argc, char **argv) {
 
     /* perform the simulation */
     for(uint16_t i = 0; i < n_iterations; i++) {
+//printf("a\n");
         /* compute the forces acting on each particle using SPH techniques */
         calculate_density<<<N_PARTICLES / PARTICLES_PER_BLOCK,
                             PARTICLES_PER_BLOCK>>>(grid_to_particle_list_map,
@@ -69,7 +72,7 @@ int main(int argc, char **argv) {
                                                      curr_particle_to_grid_map,
                                                      particle_idx_to_addr_map);
         cudaDeviceSynchronize();
-
+//printf("b\n");
 
 
         /* integrate the position and velocity of the particles based on the
@@ -79,6 +82,7 @@ int main(int argc, char **argv) {
                           PARTICLES_PER_BLOCK>>>(particle_idx_to_addr_map);
         cudaDeviceSynchronize();
 
+//printf("c\n");
         /* ensure that no particle passes into the outer layer of grid spaces
          * in the experimental space, or out of the experimental space
          * entirely
@@ -87,6 +91,7 @@ int main(int argc, char **argv) {
                                       PARTICLES_PER_BLOCK>>>(particle_idx_to_addr_map);
         cudaDeviceSynchronize();
 
+//printf("d\n");
 
 
         /* update the particle grid in 3 steps:
@@ -106,6 +111,8 @@ int main(int argc, char **argv) {
                                                                curr_particle_to_grid_map,
                                                                particle_idx_to_addr_map);
         cudaDeviceSynchronize();
+
+//printf("e\n");
 /*
         for(int i = 0; i < N_PARTICLES; i++)
         {
@@ -121,12 +128,25 @@ int main(int argc, char **argv) {
                                                               particle_idx_to_addr_map);
         cudaDeviceSynchronize();
 
+//printf("f\n");
         perform_additions_to_grid<<<n_grid_spaces / GRID_SPACES_PER_BLOCK,
                                      GRID_SPACES_PER_BLOCK>>>(grid_to_particle_list_map,
                                                               last_particle_to_grid_map,
                                                               curr_particle_to_grid_map,
                                                               particle_idx_to_addr_map);
         cudaDeviceSynchronize();
+/*
+        for(int i = 0; i < N_PARTICLES; i++)
+        {
+            if(isnan(particle_idx_to_addr_map[i]->force[0]) ||
+               isnan(particle_idx_to_addr_map[i]->force[1]) ||
+               isnan(particle_idx_to_addr_map[i]->force[2]))
+            {
+                printf("nan force detected\n");
+                return -1;
+            }
+        }
+*/
 /*
         int count = 0;
         int n;
@@ -138,10 +158,8 @@ int main(int argc, char **argv) {
                 n++;
                 count++;
             }
-            std::cout << i << ":" << n << std::endl;
         }
 
-        std::cout << std::endl;
 
         if(count != N_PARTICLES)
         {

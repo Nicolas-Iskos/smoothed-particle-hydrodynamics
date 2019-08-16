@@ -147,14 +147,12 @@ __global__ void calculate_net_force(gri_to_pl_map_t grid_to_particle_list_map,
             }
             get_norm_3vector(r_curr_acc, r_curr_acc_norm);
             mag_r_curr_acc = get_mag_3vector(r_curr_acc);
-
             add_f_contr_from_pressure(curr_particle, acc_particle,
                                       r_curr_acc_norm, total_force);
 
             add_f_contr_from_viscosity(curr_particle, acc_particle,
                                        r_curr_acc_norm, mag_r_curr_acc,
                                        total_force);
-
             }
     }
 

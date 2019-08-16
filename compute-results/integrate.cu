@@ -57,7 +57,7 @@ __global__ void enforce_boundary_conditions(pi_to_pa_map_t particle_idx_to_addr_
      * need to be updated after boundary conditions are enforced.
      * */
     for(uint8_t ax = 0; ax < 3; ax++) {
-        if(particle->position[ax] > max_lim) {
+        if(particle->position[ax] >= max_lim) {
             particle->position[ax] = max_lim - protection_term;
             particle->velocity[ax] = - DAMPING_FACTOR * particle->velocity[ax];
         }

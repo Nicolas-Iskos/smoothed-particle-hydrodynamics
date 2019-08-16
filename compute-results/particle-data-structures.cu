@@ -80,7 +80,8 @@ void initialize_dam_break(gri_to_pl_map_t grid_to_particle_list_map,
 
     init_particle_pos[0] = space_center[0] + cubic_block_rad - R_PARTICLE;
     init_particle_pos[1] = space_center[1] - cubic_block_rad + R_PARTICLE;
-    init_particle_pos[2] = space_center[2] + cubic_block_rad - R_PARTICLE - 0.3;
+    init_particle_pos[2] = space_center[2] + cubic_block_rad - R_PARTICLE -
+                           0.6 * ((float)EXP_SPACE_DIM / 2 - cubic_block_rad);
 
     /*
      * Arrange each particle into its correct grid slot for the
@@ -111,9 +112,9 @@ void initialize_dam_break(gri_to_pl_map_t grid_to_particle_list_map,
         new_particle->position[1] = particle_pos[1];
         new_particle->position[2] = particle_pos[2];
 
-        new_particle->velocity[0] = 0;
-        new_particle->velocity[1] = 0;
-        new_particle->velocity[2] = 0;
+        new_particle->velocity[0] = (2 * ((float)rand() / RAND_MAX) - 1) * G * 0.01;
+        new_particle->velocity[1] = (2 * ((float)rand() / RAND_MAX) - 1) * G * 0.01;
+        new_particle->velocity[2] = (2 * ((float)rand() / RAND_MAX) - 1) * G * 0.01;
 
         new_particle->force[0] = 0;
         new_particle->force[1] = 0;
@@ -121,7 +122,6 @@ void initialize_dam_break(gri_to_pl_map_t grid_to_particle_list_map,
 
         new_particle->density = 0;
         new_particle->pressure = 0;
-        new_particle->internal_energy = 0;
 
         new_particle->prev_particle = NULL;
         new_particle->next_particle = NULL;
