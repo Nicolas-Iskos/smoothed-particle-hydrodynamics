@@ -1,3 +1,8 @@
+/*
+ * When compiled and run, this file will run the simulation and export its
+ * results to a file named "simulation-results.csv."
+ * */
+
 #include "../simulation-parameters.h"
 
 #include "particle-data-structures.h"
@@ -9,6 +14,24 @@
 
 #include <cmath>
 
+
+
+/*
+ * main runs the simulation by first initializing the variables necessary
+ * to run the simulation, and then running the simulation by updating
+ * the parameters of each particle after successive time steps of length
+ * DT.
+ *
+ * Inputs:
+ * argc - the number of command line arguments (should be 3)
+ * agrv - an array of the command line arguments: the first argument is
+ *        the name of the executable, the second is the number of seconds
+ *        for which you would like the simulation to run, and the third
+ *        is the file path of the directory to which you would like to
+ *        export the simulation results.
+ *
+ * Outputs: None
+ * */
 int main(int argc, char **argv) {
 
     float n_seconds_run_time;
@@ -53,9 +76,8 @@ int main(int argc, char **argv) {
 
 
 
-    /* perform the simulation */
+    /* run the simulation */
     for(uint16_t i = 0; i < n_iterations; i++) {
-//printf("a\n");
         /* compute the forces acting on each particle using SPH techniques */
         calculate_density<<<N_PARTICLES / PARTICLES_PER_BLOCK,
                             PARTICLES_PER_BLOCK>>>(grid_to_particle_list_map,
@@ -63,16 +85,17 @@ int main(int argc, char **argv) {
                                                    particle_idx_to_addr_map);
         cudaDeviceSynchronize();
 
+
         calculate_pressure<<<N_PARTICLES / PARTICLES_PER_BLOCK,
                              PARTICLES_PER_BLOCK>>>(particle_idx_to_addr_map);
         cudaDeviceSynchronize();
+
 
         calculate_net_force<<<N_PARTICLES / PARTICLES_PER_BLOCK,
                               PARTICLES_PER_BLOCK>>>(grid_to_particle_list_map,
                                                      curr_particle_to_grid_map,
                                                      particle_idx_to_addr_map);
         cudaDeviceSynchronize();
-//printf("b\n");
 
 
         /* integrate the position and velocity of the particles based on the
@@ -82,7 +105,7 @@ int main(int argc, char **argv) {
                           PARTICLES_PER_BLOCK>>>(particle_idx_to_addr_map);
         cudaDeviceSynchronize();
 
-//printf("c\n");
+
         /* ensure that no particle passes into the outer layer of grid spaces
          * in the experimental space, or out of the experimental space
          * entirely
@@ -91,7 +114,6 @@ int main(int argc, char **argv) {
                                       PARTICLES_PER_BLOCK>>>(particle_idx_to_addr_map);
         cudaDeviceSynchronize();
 
-//printf("d\n");
 
 
         /* update the particle grid in 3 steps:
@@ -112,15 +134,7 @@ int main(int argc, char **argv) {
                                                                particle_idx_to_addr_map);
         cudaDeviceSynchronize();
 
-//printf("e\n");
-/*
-        for(int i = 0; i < N_PARTICLES; i++)
-        {
-            std::cout << last_particle_to_grid_map[i] << " " <<
-                         curr_particle_to_grid_map[i] << std::endl;
-        }
-        std::cout << std::endl;
-*/
+
         perform_removals_from_grid<<<n_grid_spaces / GRID_SPACES_PER_BLOCK,
                                      GRID_SPACES_PER_BLOCK>>>(grid_to_particle_list_map,
                                                               last_particle_to_grid_map,
@@ -128,47 +142,17 @@ int main(int argc, char **argv) {
                                                               particle_idx_to_addr_map);
         cudaDeviceSynchronize();
 
-//printf("f\n");
+
         perform_additions_to_grid<<<n_grid_spaces / GRID_SPACES_PER_BLOCK,
                                      GRID_SPACES_PER_BLOCK>>>(grid_to_particle_list_map,
                                                               last_particle_to_grid_map,
                                                               curr_particle_to_grid_map,
                                                               particle_idx_to_addr_map);
         cudaDeviceSynchronize();
-/*
-        for(int i = 0; i < N_PARTICLES; i++)
-        {
-            if(isnan(particle_idx_to_addr_map[i]->force[0]) ||
-               isnan(particle_idx_to_addr_map[i]->force[1]) ||
-               isnan(particle_idx_to_addr_map[i]->force[2]))
-            {
-                printf("nan force detected\n");
-                return -1;
-            }
-        }
-*/
-/*
-        int count = 0;
-        int n;
-        for(int i = 0; i < n_grid_spaces; i++)
-        {
-            n = 0;
-            for(Particle *j = grid_to_particle_list_map[i]; j != NULL; j = j->next_particle)
-            {
-                n++;
-                count++;
-            }
-        }
 
 
-        if(count != N_PARTICLES)
-        {
-            std::cout << "cow" << std::endl;
-            return 0;
-        }
-*/
-        /* this is a string stream holding the position of every particle as
-         * a series of tuples laid out in a row
+        /* create a stream to hold the positions of every particle at the current
+         * time step
          * */
         std::stringstream particle_positions_stream;
         /* fill the newly-created stream with the position of each particle */
@@ -189,5 +173,4 @@ int main(int argc, char **argv) {
         /* add the stream as a line of the output file */
         output << particle_positions_stream.str() << std::endl;
     }
-    return 0;
 }
