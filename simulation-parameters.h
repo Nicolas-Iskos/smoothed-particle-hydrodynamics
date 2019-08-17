@@ -36,5 +36,6 @@
 /* graphics parameters */
 #define WINDOW_SIZE                 600
 #define OVERLAP_FACTOR              1.5
+#define SLOWDOWN_FACTOR             1.2
 #endif
 
