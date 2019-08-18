@@ -108,7 +108,7 @@
 /* a tuning constatnt that allows us to slow down the frame rate of the
  * simulation to see it more clearly
  * */
-#define SLOWDOWN_FACTOR             1.2
+#define SLOWDOWN_FACTOR             1.4
 
 
 

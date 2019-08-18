@@ -22,6 +22,8 @@
 #include "particle-data-structures.h"
 
 #include <cstdint>
+#include <stdlib.h>
+#include <time.h>
 
 
 
@@ -118,6 +120,13 @@ void initialize_dam_break(gri_to_pl_map_t grid_to_particle_list_map,
     uint32_t grid_idx;
     uint32_t particle_idx;
     Particle *new_particle;
+
+
+
+    /* initialize random seed to change particle initialization with each
+     * run of the program
+     * */
+    srand(time(NULL));
 
     /* height_factor describes the fraction by which we move the cubic lattice
      * closer to the ground. A value of 0 means the block is centered, and

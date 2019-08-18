@@ -1,11 +1,25 @@
+/*
+ * This file contains the interface and some of the implementation
+ * for the set of functions and data structures used to manage
+ * the high-level data structures that allow the simulation to run.
+ * Complete descriptions of the functions defined in this file are
+ * contained within particle-data-structures.cu.
+ * */
+
+
+
 #ifndef PARTICLE_DATA_STRUCTURES_H
 #define PARTICLE_DATA_STRUCTURES_H
 
+
+
 #include <cstdint>
 
+
+
 /*
- * classe used to allow new operator
- * to allocate space in unified memory
+ * classe used to allow new operator to
+ * allocate space for each particle in unified memory
  * */
 class Managed {
     public:
@@ -37,7 +51,6 @@ class Particle : public Managed {
 
         float density;
         float pressure;
-        float internal_energy;
 
         Particle *prev_particle;
         Particle *next_particle;
@@ -58,8 +71,8 @@ typedef Particle **gri_to_pl_map_t;
 
 /*
  * array whose indices correspond to each particle index.
- * An element of the array corresponds to the grid space in which that
- * particle exists
+ * An element of the array corresponds to the index of the
+ * grid space in which that particle exists
  * */
 typedef uint32_t *pi_to_gri_map_t;
 
@@ -82,7 +95,6 @@ typedef Particle **pi_to_pa_map_t;
  * be run on the host.
  * */
 
-
 gri_to_pl_map_t gen_grid_to_particle_list_map();
 
 pi_to_gri_map_t gen_particle_to_grid_map();
@@ -99,18 +111,10 @@ void initialize_dam_break(gri_to_pl_map_t grid_to_particle_list_map,
  * functions with versions for both the host and device
  * */
 
-/* this function is used for the host executed particle data structure
- * initialization functions
- * */
 void host_insert_into_grid(gri_to_pl_map_t grid_to_particle_list_map,
                            uint32_t grid_idx,
                            Particle *new_particle);
 
-/* this function updates the mapping between each particle and its grid space.
- * It also keeps track of the old grid space of each particle, so that the
- * grid-parallel update_grid_to_particle_list_map function can easily remove
- * and add particles to the corresponding grid slots.
- * */
 __global__ void update_particle_to_grid_map(
                            pi_to_gri_map_t last_particle_to_grid_map,
                            pi_to_gri_map_t curr_particle_to_grid_map,
@@ -129,7 +133,6 @@ __global__ void perform_additions_to_grid(
                            pi_to_gri_map_t curr_particle_to_grid_map,
                            pi_to_pa_map_t particle_idx_to_addr_map);
 
-
 /*
  * included below is a set of accessor and utility functions to be used
  * on the data structures described above
@@ -141,6 +144,7 @@ __host__ __device__ uint32_t grid_pos_to_grid_idx(uint32_t *grid_pos);
 
 __host__ __device__ void grid_idx_to_grid_pos(uint32_t grid_idx,
                                               uint32_t *grid_pos);
+
 
 
 
