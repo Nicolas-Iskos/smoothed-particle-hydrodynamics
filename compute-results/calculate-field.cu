@@ -32,11 +32,11 @@
  *                             doubly-linked-list containing the complete
  *                             set of particles residing in that grid space
  *
- * particle_idx_to_addr_map - an array mapping the index of each particle to
- *                            the index of the grid space it resides in
+ * particle_to_grid_map - an array mapping the index of each particle to
+ *                        the index of the grid space it resides in
  *
- * particle_to_grid_map - an array mapping the index of each particle to its
- *                        address in CUDA unified memory
+ * particle_idx_to_addr_map - an array mapping the index of each particle to its
+ *                            address in CUDA unified memory
  *
  * Outputs: None
  * */
@@ -139,8 +139,8 @@ __global__ void calculate_density(gri_to_pl_map_t grid_to_particle_list_map,
  * for a single particle.
  *
  * Inputs:
- * particle_idx_to_addr_map - an array mapping the index of each particle to
- *                            the index of the grid space it resides in
+ * particle_idx_to_addr_map - an array mapping the index of each particle to its
+ *                            address in CUDA unified memory
  *
  * Outputs: None
  * */
@@ -178,11 +178,11 @@ __global__ void calculate_pressure(pi_to_pa_map_t particle_idx_to_addr_map) {
  *                             doubly-linked-list containing the complete
  *                             set of particles residing in that grid space
  *
- * particle_idx_to_addr_map - an array mapping the index of each particle to
- *                            the index of the grid space it resides in
+ * particle_to_grid_map - an array mapping the index of each particle to
+ *                       the index of the grid space it resides in
  *
- * particle_to_grid_map - an array mapping the index of each particle to its
- *                        address in CUDA unified memory
+ * particle_idx_to_addr_map - an array mapping the index of each particle to its
+ *                            address in CUDA unified memory
  *
  * Outputs: None
  *

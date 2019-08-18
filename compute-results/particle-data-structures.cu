@@ -1,3 +1,22 @@
+/*
+ * This file contains a set of functions that initialize and manage
+ * the particle data structures used in this simulation. The main
+ * particle data structures that are managed include:
+ *
+ * - grid_to_particle_list: an array that maps the index of each grid
+ *   space to a doubly-linked list containing each particle residing in
+ *   that grid space
+ *
+ * - particle_to_grid_map: an array mapping the index of each particle to
+ *   the index of the grid space that particle resides in
+ *
+ * - particle_idx_to_addr_map: an array mapping the index of each particle
+ *   to its address in CUDA unified memory
+ *
+ **/
+
+
+
 #include "../simulation-parameters.h"
 
 #include "particle-data-structures.h"
@@ -5,6 +24,11 @@
 #include <cstdint>
 
 
+
+/*
+ * returns a pointer to a dynamically allocated
+ * particle index to grid index map
+ * */
 pi_to_gri_map_t gen_particle_to_grid_map() {
     pi_to_gri_map_t particle_to_grid_map;
 
@@ -15,6 +39,11 @@ pi_to_gri_map_t gen_particle_to_grid_map() {
 }
 
 
+
+/*
+ * returns a pointer to a dynamically allocated
+ * grid to particle list map
+ * */
 gri_to_pl_map_t gen_grid_to_particle_list_map() {
     gri_to_pl_map_t grid_to_particle_list_map;
     uint32_t n_grid_spaces;
@@ -33,6 +62,11 @@ gri_to_pl_map_t gen_grid_to_particle_list_map() {
 }
 
 
+
+/*
+ * returns a pointer to a dynamically allocated
+ * particle index to address map
+ * */
 pi_to_pa_map_t gen_particle_idx_to_addr_map() {
     pi_to_pa_map_t particle_idx_to_addr_map;
 
@@ -42,19 +76,38 @@ pi_to_pa_map_t gen_particle_idx_to_addr_map() {
     return particle_idx_to_addr_map;
 }
 
+
+
 /*
- * The dam break initialization function creates a cubic block
+ * initialize_dam_break creates a cubic block
  * of particles arranged into a simple cubic lattice centered in
- * the experiment space
+ * the experiment space and sets the input data structures
+ * accordingly.
  *
- * the experiment space exists in a right handed cartesian
- * coordinate system
+ * Inputs:
+ * grid_to_particle_list_map - an array mapping the index of grid space to a
+ *                             doubly-linked-list containing the complete
+ *                             set of particles residing in that grid space
+ *
+ * last_particle_to_grid_map - an array mapping the index of each particle to
+ *                             the index of the grid space it resided in during
+ *                             the previous iteration of the simulation
+ *
+ * last_particle_to_grid_map - an array mapping the index of each particle to
+ *                             the index of the grid space it currently resides
+ *                             in
+ *
+ * particle_idx_to_addr_map - an array mapping the index of each particle to its
+ *                            address in CUDA unified memory
+ *
+ * Outputs: None
  * */
 void initialize_dam_break(gri_to_pl_map_t grid_to_particle_list_map,
                           pi_to_gri_map_t last_particle_to_grid_map,
                           pi_to_gri_map_t curr_particle_to_grid_map,
                           pi_to_pa_map_t particle_idx_to_addr_map) {
 
+    /* number of particles forming the side length of the cube lattice */
     uint32_t n_particles_per_dim;
     uint32_t n_particles_per_dim_pow2;
     float cubic_block_rad;
@@ -66,8 +119,11 @@ void initialize_dam_break(gri_to_pl_map_t grid_to_particle_list_map,
     uint32_t particle_idx;
     Particle *new_particle;
 
-
-
+    /* height_factor describes the fraction by which we move the cubic lattice
+     * closer to the ground. A value of 0 means the block is centered, and
+     * a value of 1 means the block starts on the ground.
+     * */
+    constexpr float height_factor = 0.6;
     n_particles_per_dim = (uint32_t)cbrt((float)N_PARTICLES);
     n_particles_per_dim_pow2 = (uint32_t)pow(n_particles_per_dim, 2);
 
@@ -81,7 +137,8 @@ void initialize_dam_break(gri_to_pl_map_t grid_to_particle_list_map,
     init_particle_pos[0] = space_center[0] + cubic_block_rad - R_PARTICLE;
     init_particle_pos[1] = space_center[1] - cubic_block_rad + R_PARTICLE;
     init_particle_pos[2] = space_center[2] + cubic_block_rad - R_PARTICLE -
-                           0.6 * ((float)EXP_SPACE_DIM / 2 - cubic_block_rad);
+                           height_factor *
+                           ((float)EXP_SPACE_DIM / 2 - cubic_block_rad);
 
     /*
      * Arrange each particle into its correct grid slot for the
@@ -112,9 +169,16 @@ void initialize_dam_break(gri_to_pl_map_t grid_to_particle_list_map,
         new_particle->position[1] = particle_pos[1];
         new_particle->position[2] = particle_pos[2];
 
-        new_particle->velocity[0] = (2 * ((float)rand() / RAND_MAX) - 1) * G * 0.01;
-        new_particle->velocity[1] = (2 * ((float)rand() / RAND_MAX) - 1) * G * 0.01;
-        new_particle->velocity[2] = (2 * ((float)rand() / RAND_MAX) - 1) * G * 0.01;
+        /* we randomly initialize the particle velocity in each direction
+         * with the maximum velocity in any direction the velocity due
+         * to gravitational acceleration after 3 timesteps
+         * */
+        new_particle->velocity[0] = (2 * ((float)rand() / RAND_MAX) - 1) *
+                                    G * 3 * DT;
+        new_particle->velocity[1] = (2 * ((float)rand() / RAND_MAX) - 1) *
+                                    G * 3 * DT;
+        new_particle->velocity[2] = (2 * ((float)rand() / RAND_MAX) - 1) *
+                                    G * 3 * DT;
 
         new_particle->force[0] = 0;
         new_particle->force[1] = 0;
@@ -145,6 +209,23 @@ void initialize_dam_break(gri_to_pl_map_t grid_to_particle_list_map,
 }
 
 
+
+/*
+ * host_insert_into_grid takes a given particle and inserts it into
+ * the appropriate grid space. It is to be called from the host.
+ *
+ * Inputs:
+ * grid_to_particle_list_map - an array mapping the index of each grid space
+ *                             to a doubly linked list containing the
+ *                             particles that reside in that grid space
+ *
+ * grid_idx - the index of the grid space we want to insert into
+ *
+ * new_particle - a pointer to the particle we wish to insert to the
+ *                grid space at grid_idx
+ *
+ * Outputs: None
+ * */
 void host_insert_into_grid(gri_to_pl_map_t grid_to_particle_list_map,
                            uint32_t grid_idx,
                            Particle *new_particle) {
@@ -195,6 +276,33 @@ __global__ void update_particle_to_grid_map(
 }
 
 
+
+/*
+ * Based on the differences between last_particle_to_grid_map and
+ * curr_particle_to_grid_map, perform_removals_from_grid will
+ * remove from each grid space particles that have
+ * exited that grid space since the last iteration. It is a CUDA kernel
+ * where each thread performs the work of removing relevant
+ * particles from a single grid space.
+ *
+ * Inputs:
+ * grid_to_particle_list_map - an array mapping the index of grid space to a
+ *                             doubly-linked-list containing the complete
+ *                             set of particles residing in that grid space
+ *
+ * last_particle_to_grid_map - an array mapping the index of each particle to
+ *                             the index of the grid space it resided in during
+ *                             the previous iteration of the simulation
+ *
+ * last_particle_to_grid_map - an array mapping the index of each particle to
+ *                             the index of the grid space it currently resides
+ *                             in
+ *
+ * particle_idx_to_addr_map - an array mapping the index of each particle to its
+ *                            address in CUDA unified memory
+ *
+ * Outputs: None
+ * */
 __global__ void perform_removals_from_grid(
                                 gri_to_pl_map_t grid_to_particle_list_map,
                                 pi_to_gri_map_t last_particle_to_grid_map,
@@ -207,12 +315,20 @@ __global__ void perform_removals_from_grid(
     constexpr uint32_t n_grid_spaces = (EXP_SPACE_DIM * EXP_SPACE_DIM * EXP_SPACE_DIM) /
                                        (H * H * H);
 
-    grid_idx = blockDim.x * blockIdx.x + threadIdx.x;
 
+
+    grid_idx = blockDim.x * blockIdx.x + threadIdx.x;
     if(grid_idx >= n_grid_spaces) {
         return;
     }
 
+
+
+    /* For the grid space indexed by grid_idx, if we see that a particle
+     * indexed by particle_idx was previously in the grid space of grid_idx,
+     * but is not anymore, we remove that particle from the grid space
+     * indexed by grid_idx.
+     * */
     for(uint32_t particle_idx = 0; particle_idx < N_PARTICLES; particle_idx++){
         if((last_particle_to_grid_map[particle_idx] == grid_idx) &&
            (curr_particle_to_grid_map[particle_idx] != grid_idx)) {
@@ -224,6 +340,7 @@ __global__ void perform_removals_from_grid(
             del_particle->next_particle = NULL;
             del_particle->prev_particle = NULL;
 
+            /* remove particle from the grid space at grid_idx */
             if(del_prev_particle == NULL && del_next_particle == NULL) {
                 grid_to_particle_list_map[grid_idx] = NULL;
             }
@@ -243,6 +360,33 @@ __global__ void perform_removals_from_grid(
 }
 
 
+
+/*
+ * Based on the differences between last_particle_to_grid_map and
+ * curr_particle_to_grid_map, perform_additions_to_grid will
+ * add to each grid space particles that have
+ * entered that grid space since the last iteration. It is a CUDA kernel
+ * where each thread performs the work of adding relevant
+ * particles to a single grid space.
+ *
+ * Inputs:
+ * grid_to_particle_list_map - an array mapping the index of grid space to a
+ *                             doubly-linked-list containing the complete
+ *                             set of particles residing in that grid space
+ *
+ * last_particle_to_grid_map - an array mapping the index of each particle to
+ *                             the index of the grid space it resided in during
+ *                             the previous iteration of the simulation
+ *
+ * last_particle_to_grid_map - an array mapping the index of each particle to
+ *                             the index of the grid space it currently resides
+ *                             in
+ *
+ * particle_idx_to_addr_map - an array mapping the index of each particle to its
+ *                            address in CUDA unified memory
+ *
+ * Outputs: None
+ * */
 __global__ void perform_additions_to_grid(
                                 gri_to_pl_map_t grid_to_particle_list_map,
                                 pi_to_gri_map_t last_particle_to_grid_map,
@@ -254,12 +398,20 @@ __global__ void perform_additions_to_grid(
     constexpr uint32_t n_grid_spaces = (EXP_SPACE_DIM * EXP_SPACE_DIM * EXP_SPACE_DIM) /
                                        (H * H * H);
 
-    grid_idx = blockDim.x * blockIdx.x + threadIdx.x;
 
+
+    grid_idx = blockDim.x * blockIdx.x + threadIdx.x;
     if(grid_idx >= n_grid_spaces) {
         return;
     }
 
+
+
+    /* For the grid space indexed by grid_idx, if we see that a particle
+     * indexed by particle_idx was not previously in the grid space of
+     * grid_idx but is now, we add that particle to the grid space
+     * indexed by grid_idx.
+     * */
     for(uint32_t particle_idx = 0; particle_idx < N_PARTICLES; particle_idx++){
         if((last_particle_to_grid_map[particle_idx] != grid_idx) &&
            (curr_particle_to_grid_map[particle_idx] == grid_idx)) {
@@ -284,6 +436,12 @@ __global__ void perform_additions_to_grid(
 }
 
 
+
+/*
+ * particle_pos_to_grid_idx takes a particle index and based in the position
+ * of the corresponding particle, returns the grid space that particle
+ * resides in.
+ * */
 __host__ __device__ uint32_t particle_pos_to_grid_idx(float *particle_pos) {
     uint32_t grid_pos[3];
 
@@ -300,6 +458,11 @@ __host__ __device__ uint32_t particle_pos_to_grid_idx(float *particle_pos) {
 }
 
 
+
+/*
+ * Given a column, row and layer of a grid space position,
+ * grid_pos_to_grid_idx returns the corresponding grid index
+ * */
 __host__ __device__ uint32_t grid_pos_to_grid_idx(uint32_t *grid_pos) {
 
     constexpr uint32_t n_grid_spaces_per_dim = (uint32_t)(EXP_SPACE_DIM / H);
@@ -313,6 +476,19 @@ __host__ __device__ uint32_t grid_pos_to_grid_idx(uint32_t *grid_pos) {
 }
 
 
+
+/*
+ * grid_idx_to_grid_idx takes a grid index and returns the corresponding
+ * grid column, row and layer.
+ *
+ * Inputs:
+ * grid_idx - the grid space index we would like to convert to coordinates
+ *
+ * grid_pos - a 3-element array whose elements correspond to
+ *            grid column, grid row and grid layer, respectively
+ *
+ * Outputs: None
+ * */
 __host__ __device__ void grid_idx_to_grid_pos(uint32_t grid_idx,
                                               uint32_t *grid_pos) {
 
