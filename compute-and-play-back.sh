@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # set thie variable to the file path of your display-graphics folder
-savePath="/export/home/phys/nki/private/smoothed-particle-hydrodynamics/display-graphics"
+savePath="play-back-simulation"
 
 ./compute-results/compute "$1" "$savePath"
 ./display-graphics/display

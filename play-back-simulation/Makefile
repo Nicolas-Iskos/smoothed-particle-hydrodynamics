@@ -4,13 +4,13 @@ LDFLAGS += -lglut -lGL -lX11
 
 COWFLAGS += -framework OpenGL -framework GLUT
 
-OBJECTS = display-graphics.o
+OBJECTS = play-back-simulation.o
 
-display: $(OBJECTS)
-	$(CC) $(OBJECTS) $(COWFLAGS) -o display
+play-back: $(OBJECTS)
+	$(CC) $(OBJECTS) $(COWFLAGS) -o play-back
 
 %.o: %.cpp
 	$(CC) -c $<
 
 clean:
-	rm *.o display
+	rm *.o play-back

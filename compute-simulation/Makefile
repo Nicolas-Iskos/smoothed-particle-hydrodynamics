@@ -2,7 +2,7 @@ CC = nvcc
 
 CFLAGS = -rdc=true -std c++14
 
-OBJECTS = compute-results.o particle-data-structures.o integrate.o \
+OBJECTS = compute-simulation.o particle-data-structures.o integrate.o \
 		  calculate-field.o smoothing-kernels.o
 
 
@@ -17,7 +17,7 @@ compute: $(OBJECTS)
 %.o: %.cu
 	$(CC) $(CFLAGS) -c $<
 
-compute-results.o: compute-results.cu $(COM-DEPS)
+compute-simulation.o: compute-simulation.cu $(COM-DEPS)
 
 particle-data-structures.o: $(COM-DEPS)
 
