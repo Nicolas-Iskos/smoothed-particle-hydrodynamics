@@ -6,7 +6,9 @@ particle hydrodynamics. It was developed using CUDA/C++ and OpenGL. This readme
 will contain directions on how to run the simulation, an overview of a few of the unique 
 features of this simulation and a very brief overview on smoothed particle hydrodynamics. 
 A detailed explanation of how this program works will be included in the repository wiki.
-
+<br/>
+<br/>
+<br/>
 
 
 ## How to run this simulation
@@ -14,7 +16,7 @@ A detailed explanation of how this program works will be included in the reposit
 This repository provides three bash scripts that can be used to run a simulation:
 
 #### play-back.sh
-**This script can be used to view a simulation if your computer does not have nvcc
+**play-back.sh can be used to view a simulation if your computer does not have nvcc
 or an NVIDIA GPU.** Running play-back.sh will graphically play back the results of
 whatever simulation-results.csv file is in the play-back-simulation directory.
 This repository includes a simulation-results.csv file made from running a
@@ -25,24 +27,28 @@ Of course, this script will play back the results of any simulation-results.csv 
 placed in the play-back-simulation directory. Once the simulation is running,
 - pressing 'e' will exit the simulation playback
 - pressing 'r' will restart the simulation playback
+<br/>
 
 
 #### compute.sh
-**This script can be used if your computer has nvcc and an NVIDIA GPU.** This script
+**compute.sh can be used if your computer has nvcc and an NVIDIA GPU.** This script
 is to be run with a single command line argument: the number of seconds for which
 you would like the simulation to run. It will export the results of the simulation
 to a file called simulation-results.csv in the smoothed-particle-hydrodynamics
 directory.
+<br/>
+<br/>
+<br/>
 
 
 #### compute-and-play-back.sh
-**This script can be used if your computer has nvcc and and an NVIDIA GPU.** It
+**compute-and-play-back.sh can be used if your computer has nvcc and and an NVIDIA GPU.** It
 computes the results of the simulation, exports these results to a file called
 simulation-results.csv in the play-back-simulation directory and then reads this
 file as it graphically plays back the simulation. Once the simulation is running,
 - pressing 'e' will exit the simulation playback
 - pressing 'r' will restart the simulation playback
-
+<br/>
 
 
 ## A few cool features of this project
@@ -63,7 +69,7 @@ particles are nearby and should be considered in the calculation. As particles m
 during the simulation, the list of particles in each grid space need to be updated.
 To accomplish this without the use of critical sections, we employ a set of CUDA kernel
 functions that are executed using one CUDA thread per grid space.
-
+<br/>
 
 
 ## About smoothed particle hydrodynamics
