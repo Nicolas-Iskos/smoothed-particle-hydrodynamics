@@ -42,10 +42,12 @@ directory.
 
 
 #### compute-and-play-back.sh
-**compute-and-play-back.sh can be used if your computer has nvcc and and an NVIDIA GPU.** It
-computes the results of the simulation, exports these results to a file called
-simulation-results.csv in the play-back-simulation directory and then reads this
-file as it graphically plays back the simulation. Once the simulation is running,
+**compute-and-play-back.sh can be used if your computer has nvcc and and an NVIDIA GPU.** 
+This script is to be run with a single command line argument: the number of seconds 
+for which you would like the simulation to run. It computes the results of the simulation, 
+exports these results to a file called simulation-results.csv in the play-back-simulation 
+directory and then reads this file as it graphically plays back the simulation. Once the 
+simulation is running,
 - pressing 'e' will exit the simulation playback
 - pressing 'r' will restart the simulation playback
 <br/>
