@@ -2,12 +2,14 @@ CC = g++
 
 LDFLAGS += -lglut -lGL -lX11
 
-COWFLAGS += -framework OpenGL -framework GLUT
+APPLEGLFLAGS += -framework OpenGL -framework GLUT
+LINUXGLFLAGS += -lGL -lGLU -lglut
 
 OBJECTS = play-back-simulation.o
 
+# change APPLEGLFLAGS to LINUXGLFLAGS if compiling on linux
 play-back: $(OBJECTS)
-	$(CC) $(OBJECTS) $(COWFLAGS) -o play-back
+	$(CC) $(OBJECTS) $(APPLEGLFLAGS) -o play-back
 
 %.o: %.cpp
 	$(CC) -c $<

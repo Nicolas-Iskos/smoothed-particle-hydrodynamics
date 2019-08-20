@@ -1,3 +1,4 @@
 #!/bin/bash
-cd play-back-simulation
+
+cd "play-back-simulation"
 ./play-back

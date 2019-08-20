@@ -23,7 +23,7 @@
 /***********************/
 
 /* number of particles */
-#define N_PARTICLES                 63
+#define N_PARTICLES                 4096
 
 /* particle mass */
 #define M_PARTICLE                  0.02
