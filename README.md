@@ -3,8 +3,8 @@
 This repository contains the source code and documentation for a 3-D computational
 fluid dynamics simulation program using the technique of smoothed
 particle hydrodynamics. It was developed using CUDA/C++ and OpenGL. This readme
-will contain directions on how to run the simulation, an overview of a few of the unique 
-features of this simulation and a very brief overview on smoothed particle hydrodynamics. 
+will contain directions on how to run the simulation, an overview of a few of the unique
+features of this simulation and a very brief overview on smoothed particle hydrodynamics.
 A detailed explanation of how this program works will be included in the repository wiki.
 <br/>
 <br/>
@@ -22,8 +22,8 @@ whatever simulation-results.csv file is in the play-back-simulation directory.
 This repository includes a simulation-results.csv file made from running a
 4096-particle simulation for 1.5 seconds starting in the "dam-break" configuration,
 which is basically dropping a cube-shaped fluid onto the floor.
-After cloning the repository, this simulation can be viewed immediately. 
-Of course, this script will play back the results of any simulation-results.csv file 
+After cloning the repository, this simulation can be viewed immediately.
+Of course, this script will play back the results of any simulation-results.csv file
 placed in the play-back-simulation directory. Once the simulation is running,
 - pressing 'e' will exit the simulation playback
 - pressing 'r' will restart the simulation playback
@@ -42,11 +42,11 @@ directory.
 
 
 #### compute-and-play-back.sh
-**compute-and-play-back.sh can be used if your computer has nvcc and and an NVIDIA GPU.** 
-This script is to be run with a single command line argument: the number of seconds 
-for which you would like the simulation to run. It computes the results of the simulation, 
-exports these results to a file called simulation-results.csv in the play-back-simulation 
-directory and then reads this file as it graphically plays back the simulation. Once the 
+**compute-and-play-back.sh can be used if your computer has nvcc and and an NVIDIA GPU.**
+This script is to be run with a single command line argument: the number of seconds
+for which you would like the simulation to run. It computes the results of the simulation,
+exports these results to a file called simulation-results.csv in the play-back-simulation
+directory and then reads this file as it graphically plays back the simulation. Once the
 simulation is running,
 - pressing 'e' will exit the simulation playback
 - pressing 'r' will restart the simulation playback
