@@ -22,7 +22,10 @@ whatever simulation-results.csv file is in the play-back-simulation directory.
 This repository includes a simulation-results.csv file made from running a
 4096-particle simulation for 1.5 seconds starting in the "dam-break" configuration,
 which is basically dropping a cube-shaped fluid onto the floor.
-After cloning the repository, this simulation can be viewed immediately.
+After cloning the repository, this simulation can be viewed immediately on an Apple 
+computer, as the appropriate executables are already included in the repository: no make necessary.
+If you are on a linux computer, you will need to uncomment a line in the play-back-simulation
+Makefile as directed in that file and then make. 
 Of course, this script will play back the results of any simulation-results.csv file
 placed in the play-back-simulation directory. Once the simulation is running,
 - pressing 'e' will exit the simulation playback
@@ -35,7 +38,7 @@ placed in the play-back-simulation directory. Once the simulation is running,
 is to be run with a single command line argument: the number of seconds for which
 you would like the simulation to run. It will export the results of the simulation
 to a file called simulation-results.csv in the smoothed-particle-hydrodynamics
-directory.
+directory. You will need to make in the compute-simulation directory.
 <br/>
 <br/>
 <br/>
@@ -46,7 +49,10 @@ directory.
 This script is to be run with a single command line argument: the number of seconds
 for which you would like the simulation to run. It computes the results of the simulation,
 exports these results to a file called simulation-results.csv in the play-back-simulation
-directory and then reads this file as it graphically plays back the simulation. Once the
+directory and then reads this file as it graphically plays back the simulation. You will
+need to make in the compute-simulation and play-back-simulation directories. If you are on
+a linux computer, you will need to uncomment a line in the play-back-simulation Makefile
+as directed in that file. Once the
 simulation is running,
 - pressing 'e' will exit the simulation playback
 - pressing 'r' will restart the simulation playback
