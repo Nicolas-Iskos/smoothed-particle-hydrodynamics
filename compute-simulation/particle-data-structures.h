@@ -101,11 +101,26 @@ pi_to_gri_map_t gen_particle_to_grid_map();
 
 pi_to_pa_map_t gen_particle_idx_to_addr_map();
 
+void free_grid_to_particle_list_map(gri_to_pl_map_t grid_to_particle_list);
+
+void free_particle_to_grid_map(pi_to_gri_map_t particle_to_grid_map);
+
+void free_particle_idx_to_addr_map(pi_to_pa_map_t particle_idx_to_addr_map);
+
 void initialize_dam_break(gri_to_pl_map_t grid_to_particle_list_map,
                           pi_to_gri_map_t last_particle_to_grid_map,
                           pi_to_gri_map_t curr_particle_to_grid_map,
                           pi_to_pa_map_t particle_idx_to_addr_map);
 
+void initialize_two_block_collision(gri_to_pl_map_t grid_to_particle_list_map,
+                                    pi_to_gri_map_t last_particle_to_grid_map,
+                                    pi_to_gri_map_t curr_particle_to_grid_map,
+                                    pi_to_pa_map_t particle_idx_to_addr_map);
+
+void initialize_block_wall_collision(gri_to_pl_map_t grid_to_particle_list_map,
+                                    pi_to_gri_map_t last_particle_to_grid_map,
+                                    pi_to_gri_map_t curr_particle_to_grid_map,
+                                    pi_to_pa_map_t particle_idx_to_addr_map);
 /*
  * included below is a set of general purpose data structure manipulation
  * functions with versions for both the host and device

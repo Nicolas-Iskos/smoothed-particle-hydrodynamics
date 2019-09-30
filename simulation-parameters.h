@@ -22,7 +22,10 @@
 /* particle parameters */
 /***********************/
 
-/* number of particles */
+/* number of particles (must be divisible by two
+ * if configuring in with two-block collosion
+ * initial conditions)i
+ * */
 #define N_PARTICLES                 4096
 
 /* particle mass */
@@ -44,13 +47,13 @@
 #define SL                          0.0625
 
 /* a generic small number used to prevent division-by-zero errors */
-#define EPSILON                     0.04
+#define EPSILON                     0.01
 
 /* a tuning paramter for the calculation of viscous force */
-#define A_SPH                       2
+#define A_SPH                       8
 
 /* a tuning paramter for the calculation of viscous force */
-#define B_SPH                       0.5
+#define B_SPH                       0.3
 
 
 
@@ -76,7 +79,7 @@
 /**********************/
 
 /* gravitiational constant */
-#define G                           9.8
+#define G                           12.4
 
 /* speed of sound in the fluid */
 #define C                           1500

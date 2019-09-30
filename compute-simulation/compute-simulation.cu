@@ -174,4 +174,9 @@ int main(int argc, char **argv) {
         /* add the stream as a line of the output file */
         output << particle_positions_stream.str() << std::endl;
     }
+
+    free_grid_to_particle_list_map(grid_to_particle_list_map);
+    free_particle_to_grid_map(last_particle_to_grid_map);
+    free_particle_to_grid_map(curr_particle_to_grid_map);
+    free_particle_idx_to_addr_map(particle_idx_to_addr_map);
 }
